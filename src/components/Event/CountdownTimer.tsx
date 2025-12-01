@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; 
-import { Clock, Loader2 } from 'lucide-react';
+import { Clock, BellRing } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface CountdownProps {
   opensAt: string; 
+  eventTitle?: string; // برای نمایش در نوتیفیکیشن
 }
 
 const calculateTimeLeft = (targetDate: Date) => {
-  const difference = +targetDate - +new Date();
+  const now = new Date().getTime();
+  const target = targetDate.getTime();
+  const difference = target - now;
   
-  if (difference <= 0) {
+  // اگر زمان گذشته است
+  if (isNaN(difference) || difference <= 0) {
       return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
   }
 
@@ -24,9 +29,10 @@ const calculateTimeLeft = (targetDate: Date) => {
   };
 };
 
-export default function CountdownTimer({ opensAt }: CountdownProps) {
+export default function CountdownTimer({ opensAt, eventTitle = "رویداد" }: CountdownProps) {
   const router = useRouter();
   const targetDate = new Date(opensAt);
+  
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -36,29 +42,54 @@ export default function CountdownTimer({ opensAt }: CountdownProps) {
   }, []);
 
   useEffect(() => {
-    if (timeLeft.expired && !isRefreshing) {
+    // اگر زمان تمام شده و هنوز عملیات رفرش انجام نشده
+    if (timeLeft.expired && !isRefreshing && mounted) {
         setIsRefreshing(true);
+        
+        // 🔔 اعلان باز شدن رویداد
+        toast.custom((t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-slate-900 border-2 border-green-500 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center animate-pulse">
+                    <BellRing className="h-6 w-6 text-green-400" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-bold text-white">
+                    ثبت‌نام آغاز شد! 🚀
+                  </p>
+                  <p className="mt-1 text-sm text-gray-400">
+                    ثبت‌نام برای "{eventTitle}" هم‌اکنون باز شد.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ), { duration: 5000, position: 'top-left' });
+
+        // رفرش صفحه برای انتقال رویداد به لیست باز
         router.refresh(); 
         return;
     }
 
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);
 
-    return () => clearTimeout(timer);
-  }, [timeLeft, targetDate, router, isRefreshing]);
+    return () => clearInterval(timer);
+  }, [timeLeft, targetDate, router, isRefreshing, mounted, eventTitle]);
 
-  // جلوگیری از عدم تطابق سرور و کلاینت (Hydration)
   if (!mounted) return null;
 
+  // 🚨 FIX: اگر زمان تمام شده، هیچ چیزی نشان نده (تا صفحه رفرش شود و دکمه بیاید)
   if (timeLeft.expired) {
-    return (
-        <div className="flex items-center gap-2 text-green-400 bg-green-900/40 px-4 py-2 rounded-lg animate-pulse border border-green-500/30 backdrop-blur-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm font-bold">در حال بازگشایی ثبت‌نام...</span>
-        </div>
-    );
+    return null; 
   }
 
   const timeUnits = [
@@ -69,27 +100,24 @@ export default function CountdownTimer({ opensAt }: CountdownProps) {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3 w-full">
+    <div className="flex flex-col items-center justify-center gap-4 w-full">
       
-      <div className="flex items-center gap-2 text-yellow-400 mb-1">
-        <Clock className="w-4 h-4" />
-        <span className="text-sm font-bold">شروع ثبت‌نام تا:</span>
+      <div className="flex items-center gap-2 text-yellow-400 bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-yellow-500/30 shadow-lg">
+        <Clock className="w-4 h-4 animate-pulse" />
+        <span className="text-xs font-bold">شروع ثبت‌نام تا:</span>
       </div>
 
       {/* تایمر جعبه‌ای */}
-      <div className="flex gap-2 text-center" dir="ltr">
+      <div className="flex gap-3 text-center" dir="ltr">
         {timeUnits.map((unit, index) => (
-           // فقط اگر مقدار صفر نیست یا واحد ثانیه/دقیقه است نشان بده (برای تمیزی)
-           (unit.value > 0 || unit.label === 'ثانیه' || unit.label === 'دقیقه') && (
-              <div key={index} className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-12 h-12 bg-slate-900/80 backdrop-blur-md rounded-lg border border-white/10 shadow-lg">
-                    <span className="text-xl font-mono font-bold text-white">
+            <div key={index} className="flex flex-col items-center">
+                <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-slate-900/90 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl ring-1 ring-white/5 transform transition-all hover:scale-105">
+                    <span className="text-xl sm:text-2xl font-mono font-black text-white tracking-widest drop-shadow-md">
                         {String(unit.value).padStart(2, '0')}
                     </span>
                 </div>
-                <span className="text-[10px] text-gray-300 mt-1 font-medium">{unit.label}</span>
-              </div>
-           )
+                <span className="text-[10px] text-gray-300 mt-2 font-bold tracking-wide">{unit.label}</span>
+            </div>
         ))}
       </div>
 

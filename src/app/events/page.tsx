@@ -1,12 +1,11 @@
 // src/app/events/page.tsx
 
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { Search, AlertCircle } from 'lucide-react';
 import EventCard from '../../components/EventCard'; 
 import CountdownTimer from '../../components/Event/CountdownTimer';
 
-// تعریف تایپ‌ها
+// تعریف دقیق تایپ‌ها
 interface EventData {
     _id: string;
     title: string;
@@ -21,12 +20,14 @@ interface EventData {
     registrationOpensAt?: string; 
 }
 
+// تابع دریافت رویدادها از بک‌اند
 async function getAllEvents(): Promise<EventData[]> {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
     try {
         const res = await fetch(`${API_URL}/events`, {
-            cache: 'no-store' 
+            cache: 'no-store' // دریافت داده‌های تازه در هر درخواست
         });
+        
         if (!res.ok) {
             console.error(`Backend fetch failed with status: ${res.status}`);
             return [];
@@ -42,11 +43,16 @@ async function getAllEvents(): Promise<EventData[]> {
 export default async function EventsPage() {
   const allEvents = await getAllEvents(); 
 
-  // 🚨 FIX: رویدادهای قدیمی که وضعیت ندارند را هم 'OPEN' در نظر می‌گیریم
+  // 🚨 منطق فیلتر کردن:
+  // 1. اگر status ندارد یا OPEN است -> در لیست "فعال" نشان بده
   const openEvents = allEvents.filter(e => e.registrationStatus === 'OPEN' || !e.registrationStatus);
+  
+  // 2. اگر SCHEDULED است -> در لیست "آینده" نشان بده
   const scheduledEvents = allEvents.filter(e => e.registrationStatus === 'SCHEDULED');
   
-  const isServerDown = allEvents.length === 0 && (await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/events`).then(r => r.status).catch(() => 500) !== 200);
+  // بررسی اینکه آیا سرور در دسترس بوده یا لیست کلاً خالی است
+  const isServerDown = allEvents.length === 0; 
+  // (نکته: این چک ساده است، اگر واقعا سرور قطع باشد fetch ارور می‌دهد و آرایه خالی برمی‌گردد)
 
   return (
     <div className="min-h-screen pt-24 pb-20 container mx-auto px-4 max-w-7xl text-white">
@@ -72,7 +78,7 @@ export default async function EventsPage() {
       </div>
       
       {/* ------------------------------------ */}
-      {/* ۱. رویدادهای باز برای ثبت نام (OPEN) */}
+      {/* ۱. رویدادهای فعال برای ثبت نام (OPEN) */}
       {/* ------------------------------------ */}
       <h2 className="text-3xl font-bold text-white mb-8 border-b border-green-500/50 pb-3 flex items-center gap-3">
           رویدادهای فعال <span className="text-green-400 text-base font-medium">({openEvents.length})</span>
@@ -84,7 +90,7 @@ export default async function EventsPage() {
             {isServerDown ? (
                  <>
                     <AlertCircle className="h-10 w-10 text-red-500 mb-2"/>
-                    <p>ارتباط با سرور قطع است.</p>
+                    <p>به نظر می‌رسد ارتباط با سرور قطع است.</p>
                  </>
             ) : (
                 <p>در حال حاضر رویداد فعالی وجود ندارد.</p>
@@ -93,10 +99,17 @@ export default async function EventsPage() {
         ) : (
           <Suspense fallback={<div>در حال بارگذاری...</div>}>
             {openEvents.map((event) => (
-              // 🚨 ما وضعیت را دستی به EventCard پاس می‌دهیم تا اگر نداشت، پیش‌فرض OPEN باشد
               <EventCard 
                 key={event._id} 
-                {...event} 
+                id={event._id}
+                title={event.title}
+                date={event.date}
+                location={event.location}
+                capacity={event.capacity}
+                registeredCount={event.registeredCount}
+                slug={event.slug}
+                thumbnail={event.thumbnail}
+                // ارسال وضعیت (اگر نداشت پیش‌فرض OPEN)
                 registrationStatus={event.registrationStatus || 'OPEN'}
                 registrationOpensAt={event.registrationOpensAt || ''}
               /> 
@@ -108,7 +121,6 @@ export default async function EventsPage() {
       {/* ------------------------------------ */}
       {/* ۲. رویدادهای آینده (SCHEDULED) */}
       {/* ------------------------------------ */}
-      {/* فقط اگر رویداد آینده‌ای وجود داشت، این بخش را نشان بده */}
       {scheduledEvents.length > 0 && (
         <>
             <h2 className="text-3xl font-bold text-white mb-8 border-b border-yellow-500/50 pb-3 flex items-center gap-3">
@@ -118,18 +130,32 @@ export default async function EventsPage() {
                 <Suspense fallback={<div>در حال بارگذاری...</div>}>
                     {scheduledEvents.map((event) => (
                     <div key={event._id} className="relative group">
-                        {/* نمایش کارت به صورت مات */}
+                        
+                        {/* نمایش کارت به صورت مات و غیرقابل کلیک */}
                         <div className="opacity-60 pointer-events-none select-none filter grayscale-[50%]">
                             <EventCard 
-                                {...event} 
+                                id={event._id}
+                                title={event.title}
+                                date={event.date}
+                                location={event.location}
+                                capacity={event.capacity}
+                                registeredCount={event.registeredCount}
+                                slug={event.slug}
+                                thumbnail={event.thumbnail}
                                 registrationStatus="SCHEDULED"
+                                registrationOpensAt={event.registrationOpensAt || ''}
                             />
                         </div>
                         
-                        {/* لایه پوششی و تایمر */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 rounded-2xl backdrop-blur-sm p-4 border border-yellow-500/30 transition group-hover:bg-slate-950/70">
-                            <CountdownTimer opensAt={event.registrationOpensAt || ''} />
-                            <p className="text-sm text-yellow-200/70 mt-4 font-medium bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-500/20">
+                        {/* لایه پوششی (Overlay) و تایمر */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 rounded-2xl backdrop-blur-sm p-4 border border-yellow-500/30 transition group-hover:bg-slate-950/70 z-10">
+                            
+                            <CountdownTimer 
+                                opensAt={event.registrationOpensAt || ''} 
+                                eventTitle={event.title} // برای نوتیفیکیشن
+                            />
+                            
+                            <p className="text-sm text-yellow-200/70 mt-6 font-medium bg-yellow-900/20 px-4 py-1.5 rounded-full border border-yellow-500/20">
                                 ثبت‌نام هنوز باز نشده است
                             </p>
                         </div>
