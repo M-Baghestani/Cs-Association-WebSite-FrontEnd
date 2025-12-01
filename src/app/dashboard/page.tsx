@@ -189,13 +189,17 @@ export default function DashboardPage() {
                                     <div className="text-sm text-gray-400 mb-4 space-y-2 bg-black/20 p-3 rounded-xl">
                                         <p>📅 تاریخ: {new Date(reg.event?.date).toLocaleDateString('fa-IR')}</p>
                                         <p>💰 مبلغ: {reg.pricePaid ? reg.pricePaid.toLocaleString('fa-IR') + ' تومان' : 'رایگان'}</p>
-                                        {reg.trackingCode && <p className="font-mono text-xs text-gray-500">کد رهگیری: {reg.trackingCode}</p>}
+                                        
+                                        {/* 👇 نمایش اطلاعات تماس ثبت شده */}
+                                        {reg.mobile && <p className="text-xs text-gray-500">📱 تماس ثبت شده: {reg.mobile}</p>}
+                                        
                                         {reg.receiptImage && (<a href={getReceiptUrl(reg.receiptImage)} target="_blank" className="flex items-center gap-1 text-blue-400 hover:underline text-xs"><FileText className="h-3 w-3"/> مشاهده رسید ارسالی</a>)}
                                     </div>
                                     <div className="flex justify-between items-center pt-3 border-t border-white/5">
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${reg.status === 'VERIFIED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : reg.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{reg.status === 'VERIFIED' ? <><CheckCircle className="h-3 w-3"/> تأیید شده</> : reg.status === 'PENDING' ? <><Clock className="h-3 w-3"/> در انتظار بررسی</> : <><XCircle className="h-3 w-3"/> رد شده</>}</span>
                                         <Link href={`/events/${reg.event?.slug}`} className="text-blue-400 hover:text-white text-sm transition">مشاهده جزئیات &rarr;</Link>
                                     </div>
+                                    
                                 </div>
                             ))}
                         </div>

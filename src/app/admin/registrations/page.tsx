@@ -46,24 +46,27 @@ const TableRow = ({ reg, handleStatusChange }: any) => (
             <div className="text-xs text-gray-500">{reg.user?.email}</div>
         </td>
         
-        {/* مبلغ پرداختی و رسید (FIXED) */}
         <td className="px-6 py-4 whitespace-nowrap">
-            <div className="font-bold text-green-400">{reg.pricePaid.toLocaleString('fa-IR')}</div>
-            <div className="text-xs text-gray-500">کد رهگیری: {reg.trackingCode || "ندارد"}</div>
+            <div className="font-bold text-green-400">{reg.pricePaid.toLocaleString('fa-IR')} تومان</div>
             
-            {/* 🚨 FIX 2: استفاده از تابع ساده‌شده */}
+            {/* 👇 نمایش شماره و تلگرام */}
+            <div className="mt-2 space-y-1 text-xs">
+                <div className="text-gray-300 flex items-center gap-1">
+                    <span className="text-gray-500">موبایل:</span> {reg.mobile || "---"}
+                </div>
+                <div className="text-gray-300 flex items-center gap-1">
+                    <span className="text-gray-500">تلگرام:</span> {reg.telegram || "---"}
+                </div>
+            </div>
+
             {reg.receiptImage && (
-                <a 
-                    href={getReceiptUrl(reg.receiptImage)} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-blue-400 hover:underline text-xs mt-1"
-                >
-                    <FileText className='h-4 w-4'/> مشاهده رسید
+                <a href={getReceiptUrl(reg.receiptImage)} target="_blank" className="flex items-center gap-1 text-blue-400 hover:underline text-xs mt-2">
+                    <FileText className='h-3 w-3'/> مشاهده رسید
                 </a>
             )}
         </td>
 
+        
         {/* وضعیت */}
         <td className="px-6 py-4 whitespace-nowrap">
             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusClasses(reg.status)}`}>
