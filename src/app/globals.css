@@ -53,3 +53,9 @@ body {
   background: #334155;
   border-radius: 4px;
 }
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(100%);
+    cursor: pointer;
+}
