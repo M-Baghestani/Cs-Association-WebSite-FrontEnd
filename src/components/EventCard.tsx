@@ -1,5 +1,3 @@
-// src/components/EventCard.tsx
-
 import Link from 'next/link';
 import { Calendar, MapPin, Users } from 'lucide-react';
 
@@ -11,9 +9,9 @@ interface EventProps {
   capacity: number;
   registeredCount: number;
   slug: string;
-  thumbnail?: string; 
-  registrationStatus: 'SCHEDULED' | 'OPEN' | 'CLOSED'; // 🚨 جدید
-  registrationOpensAt: string; // 🚨 جدید
+  thumbnail?: string;
+  registrationStatus: 'SCHEDULED' | 'OPEN' | 'CLOSED';
+  registrationOpensAt?: string; // ← درست شد
 }
 
 export default function EventCard({ 
@@ -24,7 +22,7 @@ export default function EventCard({
   registeredCount, 
   slug,
   thumbnail,
-  registrationStatus 
+  registrationStatus,
 }: EventProps) {
   
   const formattedDate = new Date(date).toLocaleDateString('fa-IR');
@@ -65,7 +63,6 @@ export default function EventCard({
         </div>
 
         <div className="mt-auto pt-4">
-          {/* دکمه ثبت نام بر اساس وضعیت */}
           {registrationStatus === 'OPEN' && (
             <Link 
               href={`/events/${slug}`} 
@@ -74,10 +71,11 @@ export default function EventCard({
               ثبت نام / جزئیات
             </Link>
           )}
+
           {registrationStatus === 'SCHEDULED' && (
-             <div className="block w-full rounded-lg bg-yellow-900/20 py-2 text-center text-sm font-medium text-yellow-400">
+            <div className="block w-full rounded-lg bg-yellow-900/20 py-2 text-center text-sm font-medium text-yellow-400">
               به زودی باز می‌شود
-             </div>
+            </div>
           )}
         </div>
       </div>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { 
   Users, FileText, Mail, ArrowRight, 
   Ticket, BarChart3, Loader2, PlusSquare, 
-  LayoutDashboard, MessageSquare 
+  LayoutDashboard, MessageSquare, BookOpen 
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -76,25 +76,27 @@ export default function AdminDashboard() {
 
         <h2 className="text-xl font-bold text-white mb-6">مدیریت محتوا و اعضا</h2>
 
-        {/* منوی دسترسی سریع (مرتب و بدون تکرار) */}
         <div className="grid gap-6 md:grid-cols-3">
           
-          {/* گروه رویدادها */}
+          {/* رویدادها */}
           <ActionCard href="/admin/create-event" title="ساخت رویداد جدید" icon={<PlusSquare className="h-6 w-6"/>} desc="تعریف رویداد" color="hover:border-green-500/50 hover:bg-green-900/20" />
           <ActionCard href="/admin/manage-events" title="مدیریت رویدادها" icon={<Ticket className="h-6 w-6"/>} desc="لیست، ویرایش و حذف" color="hover:border-teal-500/50 hover:bg-teal-900/20" />
           <ActionCard href="/admin/registrations" title="مدیریت پرداخت‌ها" icon={<LayoutDashboard className="h-6 w-6"/>} desc="تأیید رسیدهای واریزی" color="hover:border-blue-500/50 hover:bg-blue-900/20" />
           
-          {/* گروه وبلاگ */}
+          {/* وبلاگ */}
           <ActionCard href="/admin/create-post" title="نوشتن مقاله جدید" icon={<FileText className="h-6 w-6"/>} desc="انتشار مطلب در وبلاگ" color="hover:border-orange-500/50 hover:bg-orange-900/20" />
           <ActionCard href="/admin/manage-posts" title="مدیریت وبلاگ" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و ویرایش مقالات" color="hover:border-pink-500/50 hover:bg-pink-900/20" />
           
-          {/* گروه اعضا و پیام‌ها */}
+          {/* 👇 کارت‌های جدید: نشریه */}
+          <ActionCard href="/admin/create-journal" title="انتشار نشریه" icon={<BookOpen className="h-6 w-6"/>} desc="آپلود نسخه جدید صفر و یک" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
+          <ActionCard href="/admin/manage-journals" title="مدیریت نشریات" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و حذف نشریه‌ها" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
+
+          {/* اعضا و پیام‌ها */}
           <ActionCard href="/admin/add-member" title="افزودن عضو" icon={<Users className="h-6 w-6"/>} desc="مدیریت اعضای انجمن" color="hover:border-purple-500/50 hover:bg-purple-900/20" />
           <ActionCard href="/admin/messages" title="صندوق پیام" icon={<Mail className="h-6 w-6"/>} desc="پیام‌های تماس با ما" color="hover:border-yellow-500/50 hover:bg-yellow-900/20" />
           <ActionCard href="/admin/comments" title="مدیریت نظرات" icon={<MessageSquare className="h-6 w-6"/>} desc="تأیید و پاسخ به نظرات" color="hover:border-indigo-500/50 hover:bg-indigo-900/20" />
           
         </div>
-
       </div>
     </div>
   );

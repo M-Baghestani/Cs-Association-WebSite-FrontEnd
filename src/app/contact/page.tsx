@@ -66,7 +66,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">آدرس دفتر انجمن</p>
-                    <p className="mt-1 text-sm text-gray-400">دانشکده مهندسی کامپیوتر، طبقه دوم</p>
+                    <p className="mt-1 text-sm text-gray-400">دانشکده علوم ریاضی و کامپیوتر، طبقه دوم</p>
                   </div>
                 </div>
 
@@ -76,7 +76,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white">ایمیل رسمی</p>
-                    <p className="mt-1 text-sm text-gray-400">info@cs-association.ir</p>
+                    <p className="mt-1 text-sm text-gray-400">info@cs-khu.ir</p>
                   </div>
                 </div>
               </div>
@@ -84,13 +84,13 @@ export default function ContactPage() {
               {/* سوشال مدیا */}
               <div className="mt-8 flex gap-4 border-t border-white/10 pt-8">
                 {/* 1. تلگرام */}
-                <a href="#" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-sky-500/20 hover:text-sky-400 transition"><Send className="h-5 w-5"/></a> 
+                <a target="_blank" href="t.me/cs_khu" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-sky-500/20 hover:text-sky-400 transition"><Send className="h-5 w-5"/></a> 
                 {/* 2. گیت‌هاب */}
-                <a href="#" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-white/10 hover:text-white transition"><Github className="h-5 w-5"/></a>
+                <a target= "_blank" href="https://github.com/m-baghestani" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-white/10 hover:text-white transition"><Github className="h-5 w-5"/></a>
                 {/* 3. لینکدین */}
-                <a href="#" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-blue-600/20 hover:text-blue-400 transition"><Linkedin className="h-5 w-5"/></a>
+                <a target="_blank" href="https://www.linkedin.com/company/cskhu/" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-blue-600/20 hover:text-blue-400 transition"><Linkedin className="h-5 w-5"/></a>
                 {/* 4. اینستاگرام */}
-                <a href="#" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-pink-600/20 hover:text-pink-400 transition"><Instagram className="h-5 w-5"/></a>
+                <a href="https://www.instagram.com/cs.khu?igsh=MXU0NWQ5eWJlamRqMA==" className="rounded-full bg-white/5 p-3 text-gray-400 hover:bg-pink-600/20 hover:text-pink-400 transition" target="_blank"><Instagram className="h-5 w-5"/></a>
               </div>
             </div>
           </div>

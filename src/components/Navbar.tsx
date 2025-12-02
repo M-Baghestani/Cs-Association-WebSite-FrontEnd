@@ -50,6 +50,7 @@ export default function Navbar() {
     { name: "خانه", href: "/" },
     { name: "رویدادها", href: "/events" },
     { name: "وبلاگ", href: "/blog" },
+    { name: "نشریه", href: "/journals" }, // 👈 اضافه شد
     { name: "اعضا", href: "/team" },
     { name: "تماس", href: "/contact" },
   ];
@@ -65,7 +66,7 @@ export default function Navbar() {
           : "border-b border-transparent bg-transparent py-4"
       }`}
     >
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         
         {/* === LOGO === */}
         <Link href="/" className="group flex items-center gap-4 text-2xl font-bold text-white transition z-20">
@@ -87,16 +88,15 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* === DESKTOP MENU (وسط‌چین مطلق) === */}
-        {/* 👇 FIX: کاهش padding منو و تنظیم مجدد ترنسلیت برای وسط‌چین اپتیکال */}
+        {/* === DESKTOP MENU === */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1 rounded-full border border-white/5 bg-white/5 p-1 backdrop-blur-md z-10">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
             return (
               <Link 
                 key={link.href} 
                 href={link.href}
-                className={`relative px-4 py-2 text-base font-medium transition-colors ${
+                className={`relative px-5 py-2 text-base font-medium transition-colors ${
                   isActive ? "text-white" : "text-gray-400 hover:text-white"
                 }`}
               >
