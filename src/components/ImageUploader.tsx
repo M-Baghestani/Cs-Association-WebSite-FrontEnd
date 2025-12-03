@@ -7,6 +7,12 @@ import toast from 'react-hot-toast';
 import { Upload, X, Loader2, Check } from 'lucide-react';
 import Image from 'next/image';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+
+
+
+
 
 interface ImageUploaderProps {
     onUpload: (url: string) => void;
