@@ -65,8 +65,8 @@ export default function ImageUploader({ onUpload, label, defaultImage = "" }: Im
 
             if (res.data.success) {
                 setImageUrl(res.data.url);
-                onUpload(res.data.url);
-                toast.success('عکس جلد با موفقیت آپلود شد.');
+                onUpload(res.data.url); 
+                toast.success('فایل با موفقیت آپلود شد.'); 
             }
         } catch (error) {
             toast.error('خطا در آپلود فایل. حجم فایل مجاز 5 مگابایت است.');

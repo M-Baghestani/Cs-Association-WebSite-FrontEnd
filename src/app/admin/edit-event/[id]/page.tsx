@@ -105,7 +105,7 @@ export default function EditEventPage() {
         <ImageUploader 
           onUpload={setImageUrl} 
           defaultImage={imageUrl} // نمایش عکس فعلی
-          label="تصویر کاور" 
+          label="تصویر کاور رویداد"
         />
 
         <div className="grid md:grid-cols-2 gap-6">

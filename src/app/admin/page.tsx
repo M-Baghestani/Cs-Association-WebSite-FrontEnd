@@ -68,14 +68,10 @@ export default function AdminDashboard() {
 
         {/* آمار */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          <StatCard title="کل کاربران" value={stats?.users} icon={<Users className="h-6 w-6 text-blue-400"/>} color="bg-blue-500/10 border-blue-500/20" />
-          <StatCard title="رویدادها" value={stats?.events} icon={<Ticket className="h-6 w-6 text-purple-400"/>} color="bg-purple-500/10 border-purple-500/20" />
-          <StatCard title="ثبت‌نام‌ها" value={stats?.registrations} icon={<PlusSquare className="h-6 w-6 text-green-400"/>} color="bg-green-500/10 border-green-500/20" />
-          <StatCard title="پیام‌ها" value={stats?.messages} icon={<Mail className="h-6 w-6 text-yellow-400"/>} color="bg-yellow-500/10 border-yellow-500/20" />
           <StatCard title="کل کاربران" value={stats?.users} icon={<Users className="h-6 w-6 text-blue-400"/>} color="bg-blue-500/10 border-blue-500/20" href="/admin/users" />
           <StatCard title="رویدادها" value={stats?.events} icon={<Ticket className="h-6 w-6 text-purple-400"/>} color="bg-purple-500/10 border-purple-500/20" href="/admin/manage-events" />
           <StatCard title="ثبت‌نام‌ها" value={stats?.registrations} icon={<PlusSquare className="h-6 w-6 text-green-400"/>} color="bg-green-500/10 border-green-500/20" href="/admin/registrations" />
-          <StatCard title="پیام‌ها" value={stats?.messages} icon={<Mail className="h-6 w-6 text-yellow-400"/>} color="bg-yellow-500/10 border-yellow-500/20" href="/admin/messages" />
+          <StatCard title="پیام‌ها" value={stats?.messages} icon={<Mail className="h-6 w-6 text-yellow-400"/>} color="bg-blue-500/10 border-blue-500/20" href="/admin/messages" />
          </div>
 
         <h2 className="text-xl font-bold text-white mb-6">مدیریت محتوا و اعضا</h2>
@@ -96,7 +92,7 @@ export default function AdminDashboard() {
           <ActionCard href="/admin/manage-journals" title="مدیریت نشریات" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و حذف نشریه‌ها" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
           {/* اعضا و پیام‌ها */}
           <ActionCard href="/admin/add-member" title="افزودن عضو" icon={<Users className="h-6 w-6"/>} desc="مدیریت اعضای انجمن" color="hover:border-purple-500/50 hover:bg-purple-900/20" />
-          <ActionCard href="/admin/messages" title="صندوق پیام" icon={<Mail className="h-6 w-6"/>} desc="پیام‌های تماس با ما" color="hover:border-yellow-500/50 hover:bg-yellow-900/20" />
+          <ActionCard href="/admin/messages" title="صندوق پیام" icon={<Mail className="h-6 w-6"/>} desc="پیام‌های تماس با ما" baseBg="bg-yellow-900/10 border-yellow-500/20" color="hover:bg-yellow-900/20" />
           <ActionCard href="/admin/comments" title="مدیریت نظرات" icon={<MessageSquare className="h-6 w-6"/>} desc="تأیید و پاسخ به نظرات" color="hover:border-indigo-500/50 hover:bg-indigo-900/20" />
           
         </div>
@@ -122,11 +118,13 @@ function StatCard({ title, value, icon, color, href }: any) {
       </Link>
     );
   }
+
+  return content;
 }
 
-function ActionCard({ href, title, icon, desc, color }: any) {
+function ActionCard({ href, title, icon, desc, color, baseBg="bg-slate-900 border-white/10" }: any) {
   return (
-    <Link href={href} className={`group p-6 rounded-2xl border border-white/10 bg-slate-900 transition-all ${color}`}>
+    <Link href={href} className={`group p-6 rounded-2xl border ${baseBg} transition-all ${color}`}>
       <div className="flex items-center gap-4 mb-2">
         <div className="p-2 rounded-lg bg-white/5 text-white group-hover:scale-110 transition">{icon}</div>
         <h3 className="font-bold text-white">{title}</h3>
