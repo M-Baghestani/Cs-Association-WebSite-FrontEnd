@@ -72,7 +72,11 @@ export default function AdminDashboard() {
           <StatCard title="رویدادها" value={stats?.events} icon={<Ticket className="h-6 w-6 text-purple-400"/>} color="bg-purple-500/10 border-purple-500/20" />
           <StatCard title="ثبت‌نام‌ها" value={stats?.registrations} icon={<PlusSquare className="h-6 w-6 text-green-400"/>} color="bg-green-500/10 border-green-500/20" />
           <StatCard title="پیام‌ها" value={stats?.messages} icon={<Mail className="h-6 w-6 text-yellow-400"/>} color="bg-yellow-500/10 border-yellow-500/20" />
-        </div>
+          <StatCard title="کل کاربران" value={stats?.users} icon={<Users className="h-6 w-6 text-blue-400"/>} color="bg-blue-500/10 border-blue-500/20" href="/admin/users" />
+          <StatCard title="رویدادها" value={stats?.events} icon={<Ticket className="h-6 w-6 text-purple-400"/>} color="bg-purple-500/10 border-purple-500/20" href="/admin/manage-events" />
+          <StatCard title="ثبت‌نام‌ها" value={stats?.registrations} icon={<PlusSquare className="h-6 w-6 text-green-400"/>} color="bg-green-500/10 border-green-500/20" href="/admin/registrations" />
+          <StatCard title="پیام‌ها" value={stats?.messages} icon={<Mail className="h-6 w-6 text-yellow-400"/>} color="bg-yellow-500/10 border-yellow-500/20" href="/admin/messages" />
+         </div>
 
         <h2 className="text-xl font-bold text-white mb-6">مدیریت محتوا و اعضا</h2>
 
@@ -86,11 +90,10 @@ export default function AdminDashboard() {
           {/* وبلاگ */}
           <ActionCard href="/admin/create-post" title="نوشتن مقاله جدید" icon={<FileText className="h-6 w-6"/>} desc="انتشار مطلب در وبلاگ" color="hover:border-orange-500/50 hover:bg-orange-900/20" />
           <ActionCard href="/admin/manage-posts" title="مدیریت وبلاگ" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و ویرایش مقالات" color="hover:border-pink-500/50 hover:bg-pink-900/20" />
-          
+           
           {/* 👇 کارت‌های جدید: نشریه */}
           <ActionCard href="/admin/create-journal" title="انتشار نشریه" icon={<BookOpen className="h-6 w-6"/>} desc="آپلود نسخه جدید صفر و یک" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
           <ActionCard href="/admin/manage-journals" title="مدیریت نشریات" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و حذف نشریه‌ها" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
-
           {/* اعضا و پیام‌ها */}
           <ActionCard href="/admin/add-member" title="افزودن عضو" icon={<Users className="h-6 w-6"/>} desc="مدیریت اعضای انجمن" color="hover:border-purple-500/50 hover:bg-purple-900/20" />
           <ActionCard href="/admin/messages" title="صندوق پیام" icon={<Mail className="h-6 w-6"/>} desc="پیام‌های تماس با ما" color="hover:border-yellow-500/50 hover:bg-yellow-900/20" />
@@ -102,14 +105,23 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ title, value, icon, color }: any) {
-  return (
-    <div className={`p-6 rounded-2xl border ${color} flex flex-col items-center justify-center text-center backdrop-blur-sm bg-slate-900/50`}>
-      <div className="mb-3 p-3 rounded-full bg-slate-800/80">{icon}</div>
-      <h3 className="text-3xl font-black text-white mb-1">{value}</h3>
-      <p className="text-sm text-gray-400">{title}</p>
-    </div>
+function StatCard({ title, value, icon, color, href }: any) {
+  
+  const content = (
+      <div className={`p-6 rounded-2xl border ${color} flex flex-col items-center justify-center text-center backdrop-blur-sm bg-slate-900/50 ${href ? 'group transition-all hover:scale-[1.02] hover:shadow-lg hover:border-blue-500' : ''}`}>
+        <div className="mb-3 p-3 rounded-full bg-slate-800/80 group-hover:bg-white/10 transition">{icon}</div>
+        <h3 className="text-3xl font-black text-white mb-1">{value}</h3>
+        <p className="text-sm text-gray-400">{title}</p>
+      </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        {content}
+      </Link>
+    );
+  }
 }
 
 function ActionCard({ href, title, icon, desc, color }: any) {

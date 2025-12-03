@@ -131,7 +131,7 @@ export default function AdminMessagesPage() {
               <h4 className="mb-4 font-bold text-yellow-400 text-lg">موضوع: {ticket.subject}</h4>
               
               {/* --- بخش چت (تاریخچه پیام‌ها) --- */}
-              <div className="bg-black/20 rounded-xl p-4 mb-4 max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-700">
+              <div className="bg-slate-950 rounded-xl p-4 mb-4 max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-700">
                   {/* اگر پیام‌های جدید (آرایه) وجود داشت */}
                   {ticket.messages && ticket.messages.length > 0 ? (
                       ticket.messages.map((msg: any, idx: number) => (
