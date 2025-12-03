@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata,Viewport } from "next";
 import "./globals.css";
-// 👇 1. ایمپورت کردن فوتر
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer"; 
+import Footer from "../components/Footer";
 import BackButton from "../components/BackButton";
 import NeuralBackground from "../components/NeuralBackground";
 import { Toaster } from "react-hot-toast";
@@ -21,6 +20,13 @@ export const metadata: Metadata = {
     icon: '/icon.png',
   },
 };
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1, 
+};
+
 
 export default function RootLayout({
   children,
@@ -43,19 +49,15 @@ export default function RootLayout({
           }}
         />
 
-        <NeuralBackground />
+        <NeuralBackground /> 
         
         <Navbar />
         
-        {/* محتوای اصلی سایت */}
-        {/* کلاس flex-grow باعث می‌شود اگر محتوا کم بود، فوتر به پایین صفحه بچسبد */}
         <main className="flex-grow flex flex-col pt-24 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {children}
         </main>
         
-        {/* 👇 2. قرار دادن فوتر در اینجا (بعد از main) */}
         <Footer />
-        
         <BackButton />
       </body>
     </html>

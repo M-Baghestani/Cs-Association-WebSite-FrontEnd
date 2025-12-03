@@ -6,7 +6,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Loader2, BookOpen, Save } from "lucide-react";
 import ImageUploader from "../../../components/ImageUploader";
-import FileUploader from "../../../components/FileUploader";
+import FileUploader from "../../../components/FileUploader"; // فرض بر وجود FileUploader
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -30,9 +30,9 @@ export default function CreateJournalPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cover || !pdf) {
-        toast.error("لطفاً عکس جلد و فایل PDF را آپلود کنید.");
-        return;
+    if (!cover || !pdf) { 
+        toast.error("لطفاً عکس جلد و فایل PDF را آپلود کنید."); 
+        return; 
     }
     
     setLoading(true);
@@ -49,7 +49,7 @@ export default function CreateJournalPage() {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        toast.success("نشریه با موفقیت منتشر شد! 🎉");
+        toast.success("نشریه منتشر شد! 🎉");
         router.push("/journals");
     } catch (error: any) {
         toast.error(error.response?.data?.message || "خطا در انتشار.");
@@ -59,7 +59,7 @@ export default function CreateJournalPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-24">
+    <div className="container mx-auto max-w-2xl px-4 py-24 text-white">
         <h1 className="mb-8 text-3xl font-bold text-white text-center flex items-center justify-center gap-3">
             <BookOpen className="h-8 w-8 text-cyan-500"/> انتشار نشریه صفر و یک
         </h1>
@@ -68,7 +68,7 @@ export default function CreateJournalPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm text-gray-400 mb-2">عنوان نشریه</label>
+                    <label className="mb-2 block text-sm text-gray-400">عنوان نشریه</label>
                     <input 
                         value={title}
                         onChange={e => setTitle(e.target.value)}
@@ -78,7 +78,7 @@ export default function CreateJournalPage() {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm text-gray-400 mb-2">شماره نسخه</label>
+                    <label className="mb-2 block text-sm text-gray-400">شماره نسخه</label>
                     <input 
                         type="number" 
                         value={editionNumber}
@@ -105,7 +105,7 @@ export default function CreateJournalPage() {
                 disabled={loading} 
                 className="w-full bg-cyan-600 py-3 rounded-xl font-bold text-white hover:bg-cyan-500 transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20"
             >
-                {loading ? <Loader2 className="animate-spin"/> : <><Save className="h-5 w-5"/> انتشار نهایی</>}
+                {loading ? <Loader2 className="animate-spin"/> : <><Save className="h-5 w-5"/> انتشار نشریه</>}
             </button>
         </form>
     </div>

@@ -3,14 +3,26 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'; 
-import { usePathname } from 'next/navigation'; 
-import { Menu, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation'; 
+import { Menu, User, LogOut, LayoutDashboard, X } from 'lucide-react';
 import { motion } from 'framer-motion'; 
+
+// لیست لینک‌های اصلی
+const navLinks = [
+    { name: "خانه", href: "/" },
+    { name: "رویدادها", href: "/events" },
+    { name: "وبلاگ", href: "/blog" },
+    { name: "نشریه", href: "/journals" }, 
+    { name: "اعضا", href: "/team" },
+    { name: "تماس", href: "/contact" },
+];
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
   const pathname = usePathname(); 
+  const router = useRouter();
 
   const checkUser = () => {
     const storedUser = localStorage.getItem("user");
@@ -18,20 +30,13 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => { setScrolled(window.scrollY > 20); };
     window.addEventListener('scroll', handleScroll);
     
     checkUser();
 
-    const handleAuthChange = () => {
-        checkUser();
-    };
-
+    const handleAuthChange = () => { checkUser(); };
     window.addEventListener('auth-change', handleAuthChange);
-    
-    checkUser();
 
     return () => {
         window.removeEventListener('scroll', handleScroll);
@@ -43,26 +48,23 @@ export default function Navbar() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.dispatchEvent(new Event("auth-change"));
-    window.location.href = "/";
+    router.push("/");
+  };
+  
+  const menuVariants = {
+    hidden: { y: "-100%" },
+    visible: { y: "0%", transition: { duration: 0.3 } },
   };
 
-  const navLinks = [
-    { name: "خانه", href: "/" },
-    { name: "رویدادها", href: "/events" },
-    { name: "وبلاگ", href: "/blog" },
-    { name: "نشریه", href: "/journals" }, // 👈 اضافه شد
-    { name: "اعضا", href: "/team" },
-    { name: "تماس", href: "/contact" },
-  ];
-
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 z-50 w-full transition-all duration-300 flex justify-center ${
+    <>
+      <motion.nav 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`fixed top-0 z-50 w-full transition-all duration-300 flex justify-center ${
         scrolled 
-          ? "border-b border-white/10 bg-slate-950/90 py-2 backdrop-blur-xl shadow-2xl" 
+          ? "border-b border-white/10 bg-slate-950/90 py-2 backdrop-blur-md shadow-2xl" 
           : "border-b border-transparent bg-transparent py-4"
       }`}
     >
@@ -87,6 +89,7 @@ export default function Navbar() {
             CSA
           </span>
         </Link>
+
 
         {/* === DESKTOP MENU === */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1 rounded-full border border-white/5 bg-white/5 p-1 backdrop-blur-md z-10">
@@ -134,21 +137,79 @@ export default function Navbar() {
           ) : (
             <Link 
               href="/auth/login"
-              className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
+              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                <User className="h-5 w-5" /> ورود
+                <User className="h-4 w-4 sm:h-5 sm:w-5" /> ورود / ثبت‌نام
               </span>
-              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             </Link>
           )}
 
-          <button className="text-gray-300 lg:hidden ml-2">
-            <Menu className="h-8 w-8" />
+          {/* دکمه منوی موبایل */}
+          <button 
+            className="lg:hidden text-white p-2 sm:p-3 rounded-lg z-20" 
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-7 w-7" />
           </button>
         </div>
-
       </div>
-    </motion.nav>
+      </motion.nav>
+
+
+      {/* === MOBILE MENU === */}
+      <motion.div
+        variants={menuVariants}
+        initial="hidden"
+        animate={isMobileMenuOpen ? "visible" : "hidden"}
+        className="fixed inset-0 z-[51] bg-slate-950 lg:hidden flex flex-col" 
+      >
+        <div className="flex justify-between items-center p-6 border-b border-white/10">
+            <h2 className="text-xl font-bold text-white">منوی اصلی</h2>
+            <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+            >
+                <X className="h-6 w-6" />
+            </button>
+        </div>
+        
+        <div className="flex flex-col gap-1 p-6">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.name}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`text-xl font-medium transition-colors py-3 px-2 rounded-lg ${
+                pathname === link.href 
+                  ? "text-blue-400 bg-blue-900/20 font-bold" 
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
+        
+        {/* دکمه‌های اکشن - موبایل */}
+        <div className="mt-auto p-6 border-t border-white/10 space-y-3">
+            {user && (
+                <>
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="bg-blue-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2">
+                        <User className="h-5 w-5" /> داشبورد کاربری
+                    </Link>
+                    {user.role === 'admin' && (
+                        <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="bg-purple-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2">
+                            <LayoutDashboard className="h-5 w-5" /> پنل مدیریت
+                        </Link>
+                    )}
+                    <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2">
+                        <LogOut className="h-5 w-5" /> خروج
+                    </button>
+                </>
+            )}
+        </div>
+      </motion.div>
+    </>
   );
 }
