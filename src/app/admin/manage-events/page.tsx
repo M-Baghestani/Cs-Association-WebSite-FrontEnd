@@ -153,9 +153,9 @@ export default function ManageEventsPage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
-                      +{" "}
+                      {" "}
                       {/* فراخوانی مودال - FIX: تغییر رنگ هاور برای consistency */}
-                      +{" "}
+                      {" "}
                       <button
                         onClick={() => openDeleteModal(event._id)}
                         className="p-2 text-red-400 bg-red-500/10 rounded-lg hover:bg-red-600/50"
