@@ -256,6 +256,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import RegisterButton from '../../../components/RegisterButton'; 
 import PaymentProofModal from '../../../components/PaymentProofModal'; 
+import { toShamsiDate } from "../../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 

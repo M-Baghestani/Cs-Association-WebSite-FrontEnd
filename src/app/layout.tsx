@@ -7,6 +7,8 @@ import BackButton from "../components/BackButton";
 import { Toaster } from "react-hot-toast";
 import { Vazirmatn } from "next/font/google";
 import NeuralBackground from "../components/NeuralBackground";
+import IntroWrapper from '../components/IntroWrapper';
+
 
 const vazir = Vazirmatn({ 
   subsets: ["arabic", "latin"],
@@ -49,15 +51,13 @@ export default function RootLayout({
         />
 
         {/* 🚨 حذف NeuralBackground */}
-        <NeuralBackground />
-        <Navbar />
         
-        <main className="flex-grow flex flex-col pt-24 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Navbar />
+        <NeuralBackground />
+        <main>
           {children}
         </main>
-        
         <Footer />
-        <BackButton />
       </body>
     </html>
   );

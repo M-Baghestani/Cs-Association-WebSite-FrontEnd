@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Calendar, User, ArrowRight, MessageSquare, Send, Loader2, CheckCircle, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
-
+import { toShamsiDate } from "../../../utils/date";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // ------------------------------------
@@ -290,7 +290,7 @@ export default function SinglePostPage() {
                 <h1 className="text-3xl md:text-4xl font-black mb-6 leading-tight">{post.title}</h1>
                 
                 <div className="flex items-center gap-6 text-sm text-gray-400 border-b border-white/10 pb-6 mb-6">
-                    <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-500"/> {new Date(post.createdAt).toLocaleDateString('fa-IR')}</span>
+                    <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-500"/> {toShamsiDate(post.createdAt)}</span>
                     <span className="flex items-center gap-2"><User className="h-4 w-4 text-blue-500"/> {post.author?.name || "ادمین"}</span>
                 </div>
 

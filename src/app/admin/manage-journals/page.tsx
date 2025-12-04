@@ -5,7 +5,7 @@ import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Loader2, BookOpen, Trash2, Plus, FileText, Eye, AlertTriangle } from "lucide-react";
-
+import { toShamsiDate } from "../../../utils/date"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ManageJournalsPage() {
@@ -93,11 +93,8 @@ export default function ManageJournalsPage() {
                                 </td>
                                 <td className="px-6 py-4 text-white font-medium">{journal.title}</td>
                                 <td className="px-6 py-4 text-cyan-400 font-bold">#{journal.editionNumber}</td>
-                                <td className="px-6 py-4 text-gray-500 text-sm">{new Date(journal.publishedAt).toLocaleDateString('fa-IR')}</td>
+                                <td className="px-6 py-4 text-gray-500 text-sm">{toShamsiDate(journal.publishedAt)}</td>
                                 <td className="px-6 py-4 flex gap-2">
-                                    <Link href={`/journals/view/${journal._id}`} target="_blank" className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-600/50 rounded-lg transition" title="مشاهده">
-                                        <Eye className="h-4 w-4"/>
-                                    </Link>
                                     <a href={journal.pdfUrl} target="_blank" className="p-2 bg-green-500/10 text-green-400 hover:bg-green-600 hover:text-white rounded-lg transition" title="دانلود فایل">
                                         <FileText className="h-4 w-4"/>
                                     </a>

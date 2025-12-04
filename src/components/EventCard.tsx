@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Calendar, MapPin, Users } from 'lucide-react';
+import { toShamsiDate } from '../utils/date'
 
 interface EventProps {
   id: string;
@@ -25,7 +26,7 @@ export default function EventCard({
   registrationStatus,
 }: EventProps) {
   
-  const formattedDate = new Date(date).toLocaleDateString('fa-IR');
+  const formattedDate = toShamsiDate(date);
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10">

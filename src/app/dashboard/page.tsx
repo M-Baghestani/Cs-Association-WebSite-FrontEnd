@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,23 +6,19 @@ import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { 
-    LayoutDashboard, User, MessageSquare, Ticket, 
-    Loader2, Save, CheckCircle, Clock, XCircle, Mail, 
-    LogOut, Send, Lock, MessageCircle, FileText, Edit2, X 
+    User, MessageSquare, Ticket, 
+    Loader2, Save, CheckCircle, Clock, XCircle, Mail, Calendar,
+    LogOut, Send, Lock, MessageCircle, FileText, Edit2, X, Image,
 } from "lucide-react";
+import ImageUploader from "../../components/ImageUploader";
+import { toShamsiDate, checkIsBirthday } from "../../utils/date"; 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// 🚨 FIX 1: تابع کمکی برای ساخت آدرس مطلق بدون تکرار (Double Concatenation)
+// 🚨 تابع کمکی برای ساخت آدرس مطلق (برای ریسیت نشدن عکس)
 const getReceiptUrl = (path: string | null | undefined) => {
     if (!path) return '#'; 
-    
-    // اگر آدرس با 'http' شروع شده بود، یعنی قبلاً کامل شده و آن را مستقیماً برمی‌گردانیم
-    if (path.startsWith('http')) {
-        return path;
-    }
-
-    // اگر نسبی بود (مانند /uploads/...), آدرس پایه را اضافه می‌کنیم
+    if (path.startsWith('http')) return path;
     const baseUrl = API_URL.replace('/api', '');
     return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 }
@@ -36,11 +31,15 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   
-  // 🚨 FIX 2: studentId به phoneNumber تغییر کرد
-  const [profile, setProfile] = useState({ name: '', email: '', phoneNumber: '', password: '' }); 
+  // 🚨 FIX 1: Add new profile fields
+  const [profile, setProfile] = useState({ name: '', email: '', phoneNumber: '', password: '', 
+    profileImage: '', dateOfBirth: '' 
+  }); 
   
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+
+  const isTodayBirthday = checkIsBirthday(profile.dateOfBirth); // 🚨 FIX: چک کردن تولد
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -67,9 +66,12 @@ export default function DashboardPage() {
             const u = JSON.parse(userStr);
             setProfile(prev => ({ 
                 ...prev, 
-                name: u.name || '', 
+                name: u.name || '',
                 email: u.email || '', 
-                phoneNumber: u.phoneNumber || '' // 🚨 FIX 3: studentId به phoneNumber تغییر کرد
+                phoneNumber: u.phoneNumber || '',
+                // 🚨 FIX 2: Load new fields, converting DateOfBirth to input format (YYYY-MM-DD)
+                profileImage: u.profileImage || '',
+                dateOfBirth: u.dateOfBirth ? new Date(u.dateOfBirth).toISOString().split('T')[0] : '', 
             }));
         }
 
@@ -131,8 +133,17 @@ export default function DashboardPage() {
             headers: { Authorization: `Bearer ${token}` }
         });
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        
+        // Update DOB format after save (API returns ISO string, convert to YYYY-MM-DD for input)
+        const savedUser = res.data.user;
+        setProfile(prev => ({ 
+            ...prev, 
+            password: '', 
+            profileImage: savedUser.profileImage,
+            dateOfBirth: savedUser.dateOfBirth ? new Date(savedUser.dateOfBirth).toISOString().split('T')[0] : ''
+        }));
+        
         toast.success("پروفایل با موفقیت بروزرسانی شد ✅");
-        setProfile(prev => ({ ...prev, password: '' }));
         window.dispatchEvent(new Event("auth-change"));
     } catch (error: any) {
         toast.error(error.response?.data?.message || "خطا در بروزرسانی.");
@@ -155,9 +166,14 @@ export default function DashboardPage() {
         <aside className="lg:w-1/4">
             <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sticky top-28 shadow-xl">
                 <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                        {profile.name.charAt(0).toUpperCase()}
-                    </div>
+                    {/* 🚨 FIX: Dynamic Avatar/Image Display */}
+                    {profile.profileImage ? (
+                        <img src={profile.profileImage} alt="Profile" className="w-14 h-14 rounded-full object-cover border-2 border-blue-500"/>
+                    ) : (
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                            {profile.name.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <div className="overflow-hidden">
                         <h2 className="font-bold text-white truncate">{profile.name}</h2>
                         <p className="text-xs text-gray-400 truncate">{profile.email}</p>
@@ -176,18 +192,26 @@ export default function DashboardPage() {
         {/* CONTENT */}
         <main className="lg:w-3/4">
             
+            {/* 🚨 FIX: BIRTHDAY CELEBRATION BANNER */}
+            {isTodayBirthday && (
+                 <div className="w-full bg-pink-900/40 border border-pink-500/50 p-4 rounded-xl text-white text-center mb-6 animate-pulse">
+                     <h3 className="font-bold text-xl text-pink-300">🎉 تولدت مبارک، {profile.name}! 🥳</h3>
+                     <p className="text-sm text-pink-200 mt-1">امیدواریم امروز بهترین روز سال برای شما باشد.</p>
+                 </div>
+            )}
+            
             {/* TAB 1: EVENTS */}
             {activeTab === 'events' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <h2 className="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-4">رویدادهای ثبت‌نام شده</h2>
-                    {events.length === 0 ? <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-dashed border-gray-700 text-gray-500">در هیچ رویدادی ثبت‌نام نکرده‌اید. <br/><Link href="/events" className="text-blue-400 hover:underline mt-2 inline-block">مشاهده لیست رویدادها</Link></div> : 
+                    {events.length === 0 ? <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-dashed border-gray-700 text-gray-500/80">در هیچ رویدادی ثبت‌نام نکرده‌اید. <br/><Link href="/events" className="text-blue-400 hover:underline mt-2 inline-block">مشاهده لیست رویدادها</Link></div> : 
                         <div className="grid md:grid-cols-2 gap-4">
                             {events.map((reg: any) => (
                                 <div key={reg._id} className="bg-slate-900 border border-white/10 p-5 rounded-2xl hover:border-blue-500/50 transition group relative overflow-hidden">
                                     <div className={`absolute top-0 right-0 w-1 h-full rounded-l-full ${reg.status === 'VERIFIED' ? 'bg-green-500' : reg.status === 'PENDING' ? 'bg-yellow-500' : 'bg-red-500'}`}/>
                                     <h3 className="font-bold text-white mb-2 text-lg">{reg.event?.title}</h3>
                                     <div className="text-sm text-gray-400 mb-4 space-y-2 bg-black/20 p-3 rounded-xl">
-                                        <p>📅 تاریخ: {new Date(reg.event?.date).toLocaleDateString('fa-IR')}</p>
+                                        <p>📅 تاریخ: {toShamsiDate(reg.event?.date)}</p>
                                         <p>💰 مبلغ: {reg.pricePaid ? reg.pricePaid.toLocaleString('fa-IR') + ' تومان' : 'رایگان'}</p>
                                         
                                         {/* 👇 نمایش اطلاعات تماس ثبت شده */}
@@ -214,7 +238,7 @@ export default function DashboardPage() {
                         <h2 className="text-2xl font-bold text-white">پیام‌های من</h2>
                         <Link href="/contact" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"><MessageCircle className="h-4 w-4"/> تیکت جدید</Link>
                     </div>
-                    {tickets.length === 0 ? (
+                    {tickets.length === 0 ? ( 
                         <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-dashed border-gray-700 text-gray-500">
                             هنوز پیامی ارسال نکرده‌اید.
                         </div>
@@ -229,7 +253,7 @@ export default function DashboardPage() {
                                                 {ticket.status === 'CLOSED' ? <Lock className="h-4 w-4 text-red-500"/> : <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>}
                                                 {ticket.subject}
                                             </h4>
-                                            <span className="text-xs text-gray-500">آخرین فعالیت: {new Date(ticket.updatedAt).toLocaleDateString('fa-IR')}</span>
+                                            <span className="text-xs text-gray-500">آخرین فعالیت: {toShamsiDate(ticket.updatedAt)}</span>
                                         </div>
                                         {ticket.status === 'OPEN' && (
                                             <button onClick={() => handleCloseTicket(ticket._id)} className="text-xs text-red-400 border border-red-400/20 px-2 py-1 rounded hover:bg-red-400/10 transition">
@@ -307,15 +331,25 @@ export default function DashboardPage() {
 
             {/* TAB 3: PROFILE */}
             {activeTab === 'profile' && (
-                <div className="max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
                     <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4">ویرایش اطلاعات کاربری</h2>
                     <form onSubmit={handleUpdateProfile} className="space-y-6 bg-slate-900 p-8 rounded-2xl border border-white/10 shadow-2xl">
+                        
+                        {/* 🚨 FIX 3: Profile Image Uploader */}
+                        <div className="mx-auto w-40 mb-8">
+                            <ImageUploader 
+                                onUpload={(url) => setProfile({...profile, profileImage: url})} 
+                                defaultImage={profile.profileImage}
+                                label="عکس پروفایل"
+                            />
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-2">نام و نام خانوادگی</label>
                             <input name="name" autoComplete="name" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-950 border border-gray-700 rounded-xl p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"/>
                         </div>
                         
-                        {/* 🚨 FIX 4: فیلد شماره تماس */}
+                        {/* شماره تماس */}
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-2">شماره تماس</label>
                             <input 
@@ -327,6 +361,28 @@ export default function DashboardPage() {
                             />
                         </div>
                         
+                        {/* 🚨 FIX 4: تاریخ تولد */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">تاریخ تولد (اختیاری)</label>
+                            <div className="relative">
+                                <Calendar className="absolute right-3 top-3.5 h-5 w-5 text-gray-500" />
+                                <input 
+                                    type="date"
+                                    name="dateOfBirth" 
+                                    value={profile.dateOfBirth} 
+                                    onChange={(e) => setProfile({...profile, dateOfBirth: e.target.value})} 
+                                    // 🚨 FIX: افزودن کلاس ltr-text برای نمایش صحیح تقویم و متن در ورودی تاریخ
+                                    className="w-full bg-slate-950 border border-gray-700 rounded-xl py-3 pr-10 pl-4 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ltr-text"
+                                    
+                                />
+                            </div>
+                            {profile.dateOfBirth && (
+                                <p className="text-xs text-gray-500 mt-2">
+                                    (تاریخ ذخیره شده: {toShamsiDate(profile.dateOfBirth)})
+                                </p>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-400 mb-2">ایمیل (غیرقابل تغییر)</label>
                             <input name="email" value={profile.email} disabled className="w-full bg-slate-950/50 border border-gray-800 rounded-xl p-3 text-gray-500 cursor-not-allowed"/>

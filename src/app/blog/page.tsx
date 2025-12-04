@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { Calendar, User, ArrowLeft, Loader2, FileText } from "lucide-react";
-
+import { toShamsiDate } from "../../utils/date";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface PostType {
@@ -80,10 +80,7 @@ export default function BlogPage() {
                 <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-blue-400 transition">{post.title}</h3>
                 
                 <div className="flex items-center gap-4 text-xs text-gray-400 mb-4 border-b border-white/5 pb-4">
-                   <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-blue-500"/> 
-                        {new Date(post.createdAt).toLocaleDateString('fa-IR')}
-                   </span>
+                   <span>{toShamsiDate(post.createdAt)}</span>
                    <span className="flex items-center gap-1">
                         <User className="h-3 w-3 text-blue-500"/> 
                         {post.author?.name || "ادمین"}

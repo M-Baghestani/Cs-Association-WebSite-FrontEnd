@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { toShamsiDate } from "../../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -130,11 +131,8 @@ export default function ManageEventsPage() {
                     <td className="px-6 py-4 text-white font-medium">
                       {event.title}
                     </td>
-                    <td className="px-6 py-4 text-gray-400 text-sm hidden sm:table-cell">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-blue-400" />
-                        {new Date(event.date).toLocaleDateString("fa-IR")}
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">
+                      {toShamsiDate(event.date)}
                     </td>
                     <td className="px-6 py-4 text-gray-400 text-sm hidden sm:table-cell">
                       {event.registeredCount} / {event.capacity}
@@ -152,10 +150,8 @@ export default function ManageEventsPage() {
                         className="p-2 text-yellow-400 bg-yellow-500/10 rounded-lg"
                       >
                         <Edit className="h-4 w-4" />
-                      </Link>
-                      {" "}
-                      {/* فراخوانی مودال - FIX: تغییر رنگ هاور برای consistency */}
-                      {" "}
+                      </Link>{" "}
+                      {/* فراخوانی مودال - FIX: تغییر رنگ هاور برای consistency */}{" "}
                       <button
                         onClick={() => openDeleteModal(event._id)}
                         className="p-2 text-red-400 bg-red-500/10 rounded-lg hover:bg-red-600/50"
