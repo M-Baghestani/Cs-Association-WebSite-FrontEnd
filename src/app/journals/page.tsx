@@ -50,24 +50,26 @@ export default function JournalsPage() {
                         
                         {/* کاور و دکمه‌ها */}
                         <div className="relative aspect-[3/4] w-full overflow-hidden">
-                            <img src={journal.coverImage} alt={journal.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-                            
-                            {/* لایه پوششی تعاملی */}
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
-                                <a 
-                                    href={journal.pdfUrl} 
-                                    download // این اطمینان می‌دهد که دانلود اجباری است
-                                    className="bg-blue-600 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-blue-500 transition shadow-md"
-                                >
-                                    <Download className="h-5 w-5"/> دانلود نشریه
-                                </a>
-                            </div>
+                            <img 
+                                src={journal.coverImage} 
+                                alt={journal.title} 
+                                className="w-full h-full object-cover transition duration-500 group-hover:scale-105 group-hover:opacity-80" 
+                                loading="lazy" 
+                            />
                         </div>
                         
                         {/* جزئیات */}
-                        <div className="p-4 text-center border-t border-white/5">
+                        <div className="p-4 text-center border-t border-white/5 space-y-3">
                             <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition">{journal.title}</h3>
-                            <p className="text-gray-500 text-sm">شماره {journal.editionNumber}</p>
+                            <p className="text-gray-500 text-sm mb-2">شماره {journal.editionNumber}</p>
+                            {/* 🚨 FIX 1: دکمه مشاهده آنلاین */}
+                            <Link href={`/journals/view/${journal._id}`} className="inline-flex justify-center items-center w-full bg-blue-600/10 text-blue-400 px-4 py-2 rounded-xl font-bold gap-2 hover:bg-blue-600 hover:text-white transition shadow-md text-sm">
+                                <BookOpen className="h-4 w-4"/> مشاهده آنلاین
+                            </Link>
+                            {/* 🚨 FIX 2: دکمه دانلود اصلی */}
+                            <a href={journal.pdfUrl} download className="inline-flex justify-center items-center w-full bg-blue-600 text-white px-4 py-2 rounded-xl font-bold gap-2 hover:bg-blue-500 transition shadow-md text-sm mt-2">
+                                <Download className="h-4 w-4"/> دانلود نشریه
+                            </a>
                         </div>
                     </div>
                 ))}
