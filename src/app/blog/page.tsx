@@ -1,10 +1,21 @@
+// src/app/blog/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { Calendar, User, ArrowLeft, Loader2, FileText } from "lucide-react";
-import { toShamsiDate } from "../../utils/date";
+import { Metadata } from "next"; // 🚨 FIX: ایمپورت Metadata
+import { toShamsiDate } from "../../utils/date"; // 🚨 FIX: ایمپورت توابع تاریخ
+
+// 🚨 FIX: سئوی اختصاصی صفحه لیست مقالات (Static Metadata)
+export const metadata: Metadata = {
+  title: 'وبلاگ و مقالات تخصصی انجمن علمی کامپیوتر خوارزمی',
+  description: 'جدیدترین مقالات تخصصی در حوزه برنامه‌نویسی، هوش مصنوعی، توسعه وب و علوم کامپیوتر از نویسندگان انجمن علمی دانشگاه خوارزمی.',
+  keywords: ['مقالات', 'وبلاگ', 'برنامه نویسی', 'هوش مصنوعی', 'کامپیوتر', 'دانشگاه خوارزمی'],
+};
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface PostType {
@@ -15,6 +26,8 @@ interface PostType {
   thumbnail?: string;
   createdAt: string;
   author?: { name: string };
+  // 🚨 FIX: اضافه کردن summary به تایپ برای استفاده در description
+  summary?: string; 
 }
 
 export default function BlogPage() {
@@ -48,7 +61,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-6xl">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-white mb-4">وبلاگ و مقالات 📚</h1> {/* 👈 عنوان جدید */}
+        <h1 className="text-4xl font-bold text-white mb-4">وبلاگ و مقالات 📚</h1>
         <p className="text-gray-400">تازه‌ترین اطلاعیه‌ها و مقالات آموزشی انجمن</p>
       </div>
 
@@ -80,15 +93,19 @@ export default function BlogPage() {
                 <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-blue-400 transition">{post.title}</h3>
                 
                 <div className="flex items-center gap-4 text-xs text-gray-400 mb-4 border-b border-white/5 pb-4">
-                   <span>{toShamsiDate(post.createdAt)}</span>
+                   <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-blue-500"/> 
+                        {toShamsiDate(post.createdAt)} {/* 🚨 FIX: شمسی‌سازی */}
+                   </span>
                    <span className="flex items-center gap-1">
                         <User className="h-3 w-3 text-blue-500"/> 
                         {post.author?.name || "ادمین"}
                    </span>
                 </div>
                 
+                {/* 🚨 FIX: از summary یا content استفاده کنید */}
                 <p className="text-sm text-gray-400 line-clamp-3 mb-4 leading-relaxed opacity-80">
-                    {post.content}
+                    {post.summary || post.content}
                 </p>
                 
                 <div className="flex items-center text-blue-400 text-sm font-bold mt-auto">

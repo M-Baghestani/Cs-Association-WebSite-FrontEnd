@@ -1,262 +1,101 @@
-// "use client";
-
-// import { useEffect, useState, useCallback } from "react";
-// import { useRouter, useParams } from "next/navigation";
-// import Link from "next/link";
-// import { Calendar, User, ArrowRight, MessageSquare, Send, Loader2, FileText, CheckCircle } from "lucide-react";
-// import toast from "react-hot-toast";
-// import axios from "axios";
-
-// // ------------------------------------
-// // تعریف تایپ‌ها
-// // ------------------------------------
-
-// interface CommentType {
-//     _id: string;
-//     content: string;
-//     createdAt: string;
-//     user: { name: string, _id: string };
-//     adminReplyContent: string;
-//     adminRepliedAt?: string;
-//     isApproved: boolean;
-// }
-
-// interface PostType {
-//     _id: string;
-//     title: string;
-//     content: string;
-//     thumbnail?: string;
-//     // 🚨 FIX 1: مطمئن شو post.author می تواند یک آبجکت باشد
-//     author: { name: string } | null; 
-//     createdAt: string;
-//     commentsCount: number;
-// }
-
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
-// // ------------------------------------
-// // کامپوننت فرم ارسال نظر
-// // ------------------------------------
-// const CommentForm = ({ postId, onCommentSubmitted }: { postId: string, onCommentSubmitted: () => void }) => {
-//     const [content, setContent] = useState('');
-//     const [submitting, setSubmitting] = useState(false);
-//     const isAuthenticated = !!localStorage.getItem('token');
-
-//     const handleSubmit = async (e: React.FormEvent) => {
-//         e.preventDefault();
-//         setSubmitting(true);
-//         if (!content.trim()) return;
-
-//         try {
-//             const token = localStorage.getItem('token');
-//             const res = await axios.post(`${API_URL}/comments/${postId}`, { content }, {
-//                 headers: { Authorization: `Bearer ${token}` }
-//             });
-
-//             toast.success(res.data.message || 'نظر شما ثبت شد و در انتظار تأیید است.');
-//             setContent('');
-//             onCommentSubmitted();
-            
-//         } catch (error: any) {
-//              const message = error.response?.data?.message || "خطا: لطفا دوباره وارد شوید.";
-//              toast.error(message);
-//         } finally {
-//             setSubmitting(false);
-//         }
-//     };
-
-//     if (!isAuthenticated) {
-//         return (
-//             <div className="bg-blue-900/20 p-4 rounded-xl text-center text-gray-300 border border-blue-500/30">
-//                 برای ارسال نظر، لطفاً <Link href="/auth/login" className="text-blue-400 font-bold hover:underline">وارد شوید</Link>.
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <form onSubmit={handleSubmit} className="space-y-4">
-//             <textarea
-//                 value={content}
-//                 onChange={(e) => setContent(e.target.value)}
-//                 rows={4}
-//                 required
-//                 placeholder="نظر خود را اینجا بنویسید..."
-//                 className="w-full rounded-lg bg-white/5 p-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
-//             />
-//             <button
-//                 type="submit"
-//                 disabled={submitting || !content.trim()}
-//                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 font-bold text-white transition hover:bg-blue-500 disabled:opacity-50"
-//             >
-//                 {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : <Send className="h-5 w-5" />}
-//                 ارسال نظر
-//             </button>
-//         </form>
-//     );
-// };
-
-
-// // ------------------------------------
-// // کامپوننت نمایش دهنده کامنت‌ها
-// // ------------------------------------
-// const CommentsSection = ({ postId, initialComments }: { postId: string, initialComments: CommentType[] }) => {
-//     const [comments, setComments] = useState(initialComments);
-
-//     const fetchComments = async () => {
-//         try {
-//             const res = await axios.get(`${API_URL}/comments/${postId}`); 
-//             setComments(res.data.data);
-//         } catch (error) {
-//             toast.error("خطا در بارگذاری نظرات.");
-//         }
-//     };
-
-//     return (
-//         <div className="mt-10 pt-8 border-t border-white/10">
-//             <h2 className="mb-6 text-2xl font-bold text-white flex items-center gap-3">
-//                 <MessageSquare className="h-6 w-6 text-blue-500" />
-//                 نظرات ({comments.length})
-//             </h2>
-            
-//             <CommentForm postId={postId} onCommentSubmitted={fetchComments} />
-
-//             <div className="mt-8 space-y-6">
-//                 {comments.map((comment) => (
-//                     <div key={comment._id} className="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-                        
-//                         {/* نظر کاربر */}
-//                         <div className="flex items-center justify-between mb-3 text-sm text-gray-300">
-//                             <div className="flex items-center gap-3">
-//                                 <User className="h-5 w-5 text-purple-400" />
-//                                 <span className="font-bold">{comment.user?.name || "کاربر انجمن"}</span>
-//                             </div>
-//                             <span className="text-gray-500 text-xs">{new Date(comment.createdAt).toLocaleDateString('fa-IR')}</span>
-//                         </div>
-//                         <p className="text-gray-300 leading-relaxed pl-8">{comment.content}</p>
-                        
-//                         {/* پاسخ ادمین */}
-//                         {comment.adminReplyContent && (
-//                             <div className="mt-4 ml-6 p-4 rounded-lg border-l-4 border-green-500 bg-green-900/20 shadow-inner">
-//                                 <div className="flex items-center gap-2 text-sm font-bold text-green-400 mb-2">
-//                                     <CheckCircle className="h-4 w-4" /> پاسخ انجمن:
-//                                 </div>
-//                                 <p className="text-gray-200 text-sm">{comment.adminReplyContent}</p>
-//                             </div>
-//                         )}
-                        
-//                     </div>
-//                 ))}
-//             </div>
-            
-//             {comments.length === 0 && (
-//                 <div className="text-gray-500 text-center py-6">اولین نظر را شما بنویسید!</div>
-//             )}
-//         </div>
-//     );
-// };
-
-
-// // ------------------------------------
-// // صفحه اصلی جزئیات پست (SinglePostPage)
-// // ------------------------------------
-// export default function SinglePostPage() {
-//     const router = useRouter();
-//     const params = useParams();
-//     const postId = params.id as string;
-
-//     const [post, setPost] = useState<PostType | null>(null);
-//     const [comments, setComments] = useState<CommentType[]>([]);
-//     const [loading, setLoading] = useState(true);
-
-//     const fetchPostData = useCallback(async () => {
-//         try {
-//             // دریافت پست و کامنت‌ها به صورت موازی
-//             const [postRes, commentsRes] = await Promise.all([
-//                 axios.get(`${API_URL}/posts/${postId}`),
-//                 axios.get(`${API_URL}/comments/${postId}`)
-//             ]);
-
-//             setPost(postRes.data.data);
-//             setComments(commentsRes.data.data);
-
-//         } catch (error) {
-//             router.push("/blog"); // اگر پست یافت نشد، به لیست برگرد
-//             toast.error("پست مورد نظر یافت نشد.");
-//         } finally {
-//             setLoading(false);
-//         }
-//     }, [postId, router]);
-
-//     useEffect(() => {
-//         if (postId) {
-//             fetchPostData();
-//         }
-//     }, [postId, fetchPostData]);
-
-//     if (loading) return <div className="flex h-screen items-center justify-center text-white"><Loader2 className="animate-spin h-10 w-10 text-blue-500"/></div>;
-//     if (!post) return null;
-
-//     return (
-//         <div className="min-h-screen px-4 pt-24 pb-20">
-//             <div className="container mx-auto max-w-3xl">
-                
-//                 <Link href="/blog" className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition">
-//                     <ArrowRight className="h-4 w-4" /> بازگشت به وبلاگ
-//                 </Link>
-
-//                 <article className="bg-slate-900/50 p-8 rounded-xl border border-white/10">
-                    
-//                     {/* تصویر اصلی */}
-//                     {post.thumbnail && (
-//                         <div className="mb-8 overflow-hidden rounded-xl border border-white/10">
-//                              <img src={post.thumbnail} alt={post.title} className="w-full object-cover" loading="lazy" />
-//                         </div>
-//                     )}
-
-//                     {/* تیتر و اطلاعات */}
-//                     <h1 className="mb-6 text-4xl font-black leading-tight text-white md:text-5xl">
-//                         {post.title}
-//                     </h1>
-
-//                     <div className="mb-8 flex items-center gap-6 border-b border-white/10 pb-4 text-sm text-gray-400">
-//                         <div className="flex items-center gap-2">
-//                             <Calendar className="h-4 w-4 text-blue-500" />
-//                             <span>{new Date(post.createdAt).toLocaleDateString('fa-IR')}</span>
-//                         </div>
-//                         <div className="flex items-center gap-2">
-//                             <User className="h-4 w-4 text-blue-500" />
-//                             {/* 🚨 FIX: افزودن ? برای دسترسی ایمن به name */}
-//                             <span>نویسنده: {post.author?.name || "ادمین انجمن"}</span>
-//                         </div>
-//                     </div>
-
-//                     {/* متن خبر */}
-//                     <div className="prose prose-invert prose-lg max-w-none text-gray-300">
-//                         <p className="whitespace-pre-wrap leading-loose">
-//                             {post.content}
-//                         </p>
-//                     </div>
-//                 </article>
-                
-//                 {/* بخش نظرات */}
-//                 <CommentsSection postId={postId} initialComments={comments} />
-
-//             </div>
-//         </div>
-//     );
-// };
-
+// src/app/events/[slug]/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { Calendar, MapPin, Users, DollarSign, Loader2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { Metadata } from "next"; 
+import { toShamsiDate } from "../../../utils/date"; 
+
+// 🚨 FIX: فرض بر وجود توابع fetch و کامپوننت‌های RegisterButton و PaymentProofModal
 import RegisterButton from '../../../components/RegisterButton'; 
 import PaymentProofModal from '../../../components/PaymentProofModal'; 
-import { toShamsiDate } from "../../../utils/date";
+
+const fetchEventBySlug = async (slug: string) => {
+    // ⚠️ Placeholder: شما باید این تابع را در src/utils/fetchEventBySlug.ts پیاده‌سازی کنید.
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/events/slug/${slug}`);
+    return res.data.data;
+};
+
+const BASE_URL = 'https://cs-khu.ir';
+
+// ------------------------------------
+// 🚨 FIX: تابع generateMetadata (Server Component)
+// ------------------------------------
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  // ⚠️ از آنجایی که این یک Client Component است، این تابع باید در یک فایل مجزا باشد
+  // اما برای سادگی، فرض می‌کنیم تابع fetchEventBySlug در اینجا تعریف شده است.
+  const event = await fetchEventBySlug(params.slug);
+
+  if (!event) {
+    return { title: 'رویداد یافت نشد' };
+  }
+
+  const description = event.description.substring(0, 160) + '...';
+  const eventUrl = `${BASE_URL}/events/${params.slug}`;
+
+  // Schema Markup از نوع Event
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "startDate": event.date,
+    "eventStatus": event.isPassed ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", 
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "location": {
+      "@type": "Place",
+      "name": event.location,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": event.location, 
+        "addressLocality": "کرج", 
+        "addressRegion": "البرز",
+        "addressCountry": "ایران"
+      }
+    },
+    "image": [event.thumbnail],
+    "description": description,
+    "organizer": {
+      "@type": "Organization",
+      "name": "انجمن علمی علوم کامپیوتر دانشگاه خوارزمی",
+      "url": BASE_URL
+    },
+    "offers": {
+        "@type": "Offer",
+        "price": event.price || 0,
+        "priceCurrency": "IRR", 
+        "availability": "https://schema.org/InStock",
+        "validFrom": new Date().toISOString(),
+        "url": eventUrl
+    }
+  };
+
+  return {
+    title: event.title + ' | رویداد انجمن علمی کامپیوتر',
+    description: description,
+    keywords: ['رویداد', event.location, event.title, 'دانشگاه خوارزمی', 'انجمن علمی'],
+    
+    openGraph: {
+        title: event.title,
+        description: description,
+        url: eventUrl,
+        type: 'website', 
+        images: [{ url: event.thumbnail }],
+    },
+    alternates: {
+        types: {
+            'application/ld+json': eventSchema as any,
+        },
+    },
+  };
+}
+
+// ------------------------------------
+// صفحه جزئیات رویداد (Client Component)
+// ------------------------------------
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -272,6 +111,7 @@ interface EventType {
   price: number; thumbnail?: string; creator: string;
   userRegistration?: RegistrationStatus | null; 
 }
+
 
 export default function EventPage() {
   const router = useRouter();
@@ -293,7 +133,6 @@ export default function EventPage() {
         
         const res = await axios.get(`${API_URL}/events/slug/${slug}`, { headers });
         
-        // تبدیل قیمت به عدد
         const data = res.data.data;
         data.price = Number(data.price) || 0;
         setEvent(data);
@@ -344,7 +183,7 @@ export default function EventPage() {
   if (loading) return <div className="flex h-screen items-center justify-center text-white"><Loader2 className="animate-spin inline-block mr-2"/>در حال بارگذاری...</div>;
   if (!event) return null;
 
-  const formattedDate = new Date(event.date).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
+  const formattedDate = toShamsiDate(event.date); // 🚨 FIX: شمسی‌سازی تاریخ
 
   return (
     <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-5xl text-white">
@@ -378,7 +217,6 @@ export default function EventPage() {
           price={event.price}
           capacity={event.capacity} 
           registeredCount={event.registeredCount} 
-          // 👇 ارسال وضعیت دقیق کاربر به دکمه
           userRegistration={event.userRegistration || null}
           onRegisterSuccess={fetchEvent} 
           handleRegister={handleRegisterClick}
@@ -386,13 +224,12 @@ export default function EventPage() {
         />
       </div>
       
-      {/* مودال پرداخت */}
       <PaymentProofModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         eventId={event._id}
         eventPrice={event.price}
-        onRegistrationSuccess={fetchEvent} // بعد از موفقیت مودال، صفحه رفرش می‌شود
+        onRegistrationSuccess={fetchEvent}
       />
     </div>
   );

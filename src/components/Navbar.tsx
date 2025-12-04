@@ -119,25 +119,24 @@ export default function Navbar() {
         {/* === BUTTONS === */}
         <div className="flex items-center gap-4 z-20">
           {user ? (
-            <div className="flex items-center gap-4">
-              {/* 🚨 FIX 2: حذف لینک‌های Dashboard/Admin از نوار اصلی */}
+            // 🚨 FIX 1: پنهان کردن دکمه خروج در موبایل (چون در منوی همبرگری است)
+            <div className="hidden lg:flex items-center gap-4">
               
               <button 
                 onClick={handleLogout} 
-                // 🚨 FIX: کاهش Padding در موبایل (p-2) و آیکون (h-4 w-4)
-                className="rounded-full bg-red-500/10 p-2 sm:p-3 text-red-400 hover:bg-red-500 hover:text-white transition"
+                className="rounded-full bg-red-500/10 p-3 text-red-400 hover:bg-red-500 hover:text-white transition"
               >
-                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                <LogOut className="h-5 w-5" />
               </button>
             </div>
           ) : (
             <Link 
               href="/auth/login"
-              // 🚨 FIX 1: کاهش شدید اندازه دکمه برای موبایل‌های کوچک (XS)
+              // 🚨 FIX 2: اندازه بهینه‌شده دکمه ورود/ثبت‌نام برای موبایل
               className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-3 py-1.5 text-xs sm:px-6 sm:py-3 sm:text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                <User className="h-4 w-4" /> ورود
+                <User className="h-4 w-4" /> ورود / ثبت‌نام
               </span>
             </Link>
           )}

@@ -1,7 +1,19 @@
+// src/app/events/page.tsx
 import { Suspense } from 'react';
 import { Search, AlertCircle, CalendarX } from 'lucide-react';
 import EventCard from '../../components/EventCard'; 
 import CountdownTimer from '../../components/Event/CountdownTimer';
+import { Metadata } from "next"; 
+// 🚨 FIX: فرض بر وجود توابع fetch
+import fetchEvents from "../../utils/fetchEvents"; 
+
+// 🚨 FIX: سئوی اختصاصی صفحه لیست رویدادها (Static Metadata)
+export const metadata: Metadata = {
+  title: 'رویدادها، کارگاه‌ها و مسابقات انجمن علمی کامپیوتر خوارزمی',
+  description: 'لیست کامل رویدادهای پیش‌رو و برگزار شده شامل کارگاه‌های آموزشی، وبینارها، مسابقات برنامه‌نویسی و همایش‌های علمی.',
+  keywords: ['رویدادها', 'کارگاه', 'مسابقه برنامه نویسی', 'وبینار', 'دانشگاه خوارزمی', 'انجمن علمی'],
+};
+
 
 interface EventData {
     _id: string;
@@ -16,30 +28,17 @@ interface EventData {
     registrationOpensAt?: string;
 }
 
+// 🚨 FIX: استفاده از تابع fetchEvents برای فراخوانی داده‌ها
 async function getAllEvents(): Promise<{ data: EventData[], error: boolean }> {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    try {
-        const res = await fetch(`${API_URL}/events`, {
-            cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' }
-        });
-
-        if (!res.ok) {
-            console.error(`Backend fetch failed: ${res.status} ${res.statusText}`);
-            return { data: [], error: true };
-        }
-
-        const json = await res.json();
-        return { data: json.data || [], error: false };
-    } catch (error) {
-        console.error("Network error fetching events:", error);
-        return { data: [], error: true };
-    }
+    const { events, error } = await fetchEvents();
+    return { data: events, error };
 }
 
 export default async function EventsPage() {
+    // 🚨 FIX: فراخوانی داده‌ها در Server Component
     const { data: allEvents, error: isServerDown } = await getAllEvents();
 
+    // فیلتر کردن رویدادها (این منطق باید روی Server هم کار کند)
     const openEvents = allEvents.filter(e => e.registrationStatus === 'OPEN' || !e.registrationStatus);
     const scheduledEvents = allEvents.filter(e => e.registrationStatus === 'SCHEDULED');
 
@@ -58,6 +57,7 @@ export default async function EventsPage() {
 
             {/* SEARCH BOX */}
             <div className="mb-12 max-w-2xl mx-auto relative">
+                {/* ⚠️ توجه: فیلد جستجو باید به یک Client Component منتقل شود تا بتواند state را مدیریت کند */}
                 <input
                     type="text"
                     placeholder="جستجو در رویدادها..."

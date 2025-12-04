@@ -1,12 +1,21 @@
+// src/app/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Cpu, Sparkles, Calendar, MapPin, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import Typewriter from 'typewriter-effect';
 import Image from "next/image";
-import axios from "axios"; // برای فراخوانی API
+import axios from "axios"; 
+import { Metadata } from "next"; // 🚨 FIX: ایمپورت Metadata
+
+// 🚨 FIX: سئوی اختصاصی صفحه اصلی (Static Metadata)
+export const metadata: Metadata = {
+  title: 'انجمن علمی علوم کامپیوتر دانشگاه خوارزمی | صفحه اصلی',
+  description: 'وبسایت رسمی انجمن علمی علوم کامپیوتر دانشگاه خوارزمی. آخرین رویدادها، وبلاگ‌های تخصصی، و آشنایی با اعضای فعال انجمن.',
+  keywords: ['صفحه اصلی', 'انجمن علمی', 'علوم کامپیوتر', 'دانشگاه خوارزمی', 'رویدادها', 'وبلاگ'],
+};
+
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -14,6 +23,8 @@ export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // 🚨 FIX: از toShamsiDate استفاده کنید
+  const { toShamsiDate } = require("../utils/date"); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -23,7 +34,6 @@ export default function Home() {
       try {
         const res = await axios.get(`${API_URL}/events`);
         if (res.data.success) {
-          // فقط ۳ رویداد اول را برای نمایش در صفحه اصلی نگه می‌داریم
           setEvents(res.data.data.slice(0, 3));
         }
       } catch (error) {
@@ -64,7 +74,7 @@ export default function Home() {
         <div className="space-y-2 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-blue-500" />
-            <span>{new Date(event.date).toLocaleDateString('fa-IR')}</span>
+            <span>{toShamsiDate(event.date)}</span> {/* 🚨 FIX: شمسی‌سازی */}
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-blue-500" />
@@ -118,7 +128,6 @@ export default function Home() {
 
             {/* Typewriter (Placeholder) */}
             <div className="h-10 text-xl md:text-2xl text-blue-300 font-bold mt-4">
-               {/* Typewriter is removed for simplicity, or keep the component if available */}
                <p>برگزارکننده رویدادهای تخصصی</p>
             </div>
             
@@ -196,6 +205,8 @@ export default function Home() {
 
 // کامپوننت کارت رویداد صفحه اصلی
 function HomeEventCard({ event, index }: { event: any, index: number }) {
+    // 🚨 FIX: از toShamsiDate استفاده کنید
+    const { toShamsiDate } = require("../utils/date"); 
     return (
         <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -209,7 +220,7 @@ function HomeEventCard({ event, index }: { event: any, index: number }) {
             <Image
                 src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
                 alt={event.title}
-                fill // 🚨 FIX: استفاده از fill و اطمینان از object-cover
+                fill 
                 className="object-cover transition duration-700 group-hover:scale-110"
                 unoptimized
             />
@@ -223,7 +234,7 @@ function HomeEventCard({ event, index }: { event: any, index: number }) {
             <div className="space-y-2 text-sm text-gray-400">
             <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-blue-500" />
-                <span>{new Date(event.date).toLocaleDateString('fa-IR')}</span>
+                <span>{toShamsiDate(event.date)}</span> {/* 🚨 FIX: شمسی‌سازی */}
             </div>
             <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-blue-500" />
