@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { User, Mail, Lock, Loader2, Phone, ArrowLeft, GraduationCap } from "lucide-react"; 
+import { User, Mail, Lock, Loader2, Phone, GraduationCap, Chrome, LogIn } from "lucide-react"; 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// تعریف تایپ گلوبال گوگل برای جلوگیری از خطای TypeScript
+declare global {
+    interface Window {
+      google: any;
+    }
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,6 +30,7 @@ export default function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // --- LOGIC FOR REGULAR REGISTER ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -35,7 +43,6 @@ export default function RegisterPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // 🚨 FIX: پخش رویداد برای آپدیت نوبار (عضویت موفق)
         window.dispatchEvent(new Event("auth-change")); 
         
         toast.success("ثبت‌نام موفقیت‌آمیز بود! به داشبورد هدایت می‌شوید.");
@@ -48,6 +55,72 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+
+  // --- LOGIC FOR GOOGLE REGISTER/LOGIN ---
+  useEffect(() => {
+    // 1. Load Google Identity Services Script
+    const script = document.createElement('script');
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = initializeGoogle;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  const handleCredentialResponse = async (response: any) => {
+    if (response.credential) {
+      setLoading(true);
+      try {
+        // 2. Send ID Token to our Backend
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: response.credential }),
+        });
+
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || "خطا در ثبت‌نام با گوگل");
+
+        // 3. Handle successful login/registration
+        localStorage.setItem("token", json.data.token);
+        localStorage.setItem("user", JSON.stringify(json.data.user));
+        toast.success(`خوش آمدید ${json.data.user.name}`);
+        router.push("/dashboard");
+      } catch (err: any) {
+        toast.error(err.message || "خطا در ثبت‌نام با گوگل.");
+      } finally { setLoading(false); }
+    }
+  };
+
+  const initializeGoogle = () => {
+    if (typeof window !== 'undefined' && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, // ⚠️ حتماً باید تنظیم شود
+        callback: handleCredentialResponse,
+        auto_select: false,
+      });
+      // رندر یک دکمه پنهان (اجباری برای فعال شدن callback)
+      window.google.accounts.id.renderButton(
+        document.getElementById("hiddenGoogleButtonRegister"),
+        { theme: "outline", size: "large", type: "standard", shape: "pill", width: "300" } 
+      );
+    }
+  };
+
+  const handleGoogleLoginClick = () => {
+      if (typeof window !== 'undefined' && window.google) {
+          // فعال‌سازی prompt گوگل که مسئول نمایش پنجره یا one-tap است
+          window.google.accounts.id.prompt(); 
+      } else {
+           toast.error("سرویس Google بارگذاری نشده است. لطفاً صفحه را مجدداً بارگیری کنید.");
+      }
+  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 pt-24 md:pt-32">
@@ -127,10 +200,19 @@ export default function RegisterPage() {
             </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          قبلاً حساب کاربری داشته‌اید؟{" "}
-          <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 transition font-medium flex items-center justify-center gap-1">
-            ورود <ArrowLeft className="h-3 w-3"/>
+        {/* === SOCIAL LOGIN === */}
+        <div className="relative mt-8 mb-4">
+            <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+                <span className="bg-slate-900 px-3 text-gray-500">----------------</span>
+            </div>
+        </div>
+        {/* 🚨 FIX: Stylized Link Button */}
+        <div className="mt-8 text-center">
+          <Link href="/auth/login" className="bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 px-6 py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/10">
+            <LogIn className="h-5 w-5"/> قبلاً حساب کاربری داشته‌اید؟
           </Link>
         </div>
       </div>

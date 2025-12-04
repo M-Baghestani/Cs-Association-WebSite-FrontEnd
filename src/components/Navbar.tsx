@@ -120,27 +120,24 @@ export default function Navbar() {
         <div className="flex items-center gap-4 z-20">
           {user ? (
             <div className="flex items-center gap-4">
-              {user.role === 'admin' && (
-                <Link href="/admin" className="hidden xl:flex items-center gap-2 rounded-full bg-slate-800 px-5 py-2.5 text-sm font-bold text-white border border-slate-700 hover:bg-slate-700 transition">
-                   <LayoutDashboard className="h-4 w-4" /> پنل
-                </Link>
-              )}
-
-              <Link href="/dashboard" className="hidden md:flex items-center gap-2 text-base font-medium text-gray-300 hover:text-white transition">
-                <span className="text-blue-400">داشبورد</span>
-              </Link>
+              {/* 🚨 FIX 2: حذف لینک‌های Dashboard/Admin از نوار اصلی */}
               
-              <button onClick={handleLogout} className="rounded-full bg-red-500/10 p-3 text-red-400 hover:bg-red-500 hover:text-white transition">
-                <LogOut className="h-5 w-5" />
+              <button 
+                onClick={handleLogout} 
+                // 🚨 FIX: کاهش Padding در موبایل (p-2) و آیکون (h-4 w-4)
+                className="rounded-full bg-red-500/10 p-2 sm:p-3 text-red-400 hover:bg-red-500 hover:text-white transition"
+              >
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
           ) : (
             <Link 
               href="/auth/login"
-              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
+              // 🚨 FIX 1: کاهش شدید اندازه دکمه برای موبایل‌های کوچک (XS)
+              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-3 py-1.5 text-xs sm:px-6 sm:py-3 sm:text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                <User className="h-4 w-4 sm:h-5 sm:w-5" /> ورود / ثبت‌نام
+                <User className="h-4 w-4" /> ورود
               </span>
             </Link>
           )}
@@ -191,15 +188,15 @@ export default function Navbar() {
           ))}
         </div>
         
-        {/* دکمه‌های اکشن - موبایل */}
+        {/* دکمه‌های اکشن - موبایل (شامل داشبورد و ادمین) */}
         <div className="mt-auto p-6 border-t border-white/10 space-y-3">
             {user && (
                 <>
-                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="bg-blue-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2">
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="bg-blue-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
                         <User className="h-5 w-5" /> داشبورد کاربری
                     </Link>
                     {user.role === 'admin' && (
-                        <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="bg-purple-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2">
+                        <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="bg-purple-600 text-white font-bold py-3 w-full rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30">
                             <LayoutDashboard className="h-5 w-5" /> پنل مدیریت
                         </Link>
                     )}
