@@ -92,7 +92,7 @@ export default function Home() {
         
         {/* HERO SECTION */}
         <section className="container max-w-7xl mx-auto px-6">
-          <div className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-160px)]">
+          <div className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-100px)] lg:min-h-[calc(100vh-180px)]">
             
             {/* Badge */}
             <motion.div 

@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="relative py-16 text-gray-400 bg-slate-950/90 backdrop-blur-md border-t border-white/5">
       
       {/* افکت نئون پس‌زمینه در پایین */}
-      <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
+      <div className="container max-w-7xl mx-auto grid gap-8 md:gap-10 px-6 md:grid-cols-4 lg:grid-cols-4"/>
 
       <div className="container max-w-7xl mx-auto grid gap-10 px-6 md:grid-cols-4 lg:grid-cols-4">
         

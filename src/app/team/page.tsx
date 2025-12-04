@@ -34,7 +34,7 @@ export default async function TeamPage() {
             هنوز اعضا معرفی نشده‌اند.
           </div>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {members.map((member: any) => (
               <div key={member._id} className="group relative flex flex-col items-center rounded-3xl border border-white/5 bg-slate-900/50 p-6 text-center transition hover:border-blue-500/30 hover:bg-slate-900">
                 

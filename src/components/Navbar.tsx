@@ -137,7 +137,7 @@ export default function Navbar() {
           ) : (
             <Link 
               href="/auth/login"
-              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
+              className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-blue-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <User className="h-4 w-4 sm:h-5 sm:w-5" /> ورود / ثبت‌نام
