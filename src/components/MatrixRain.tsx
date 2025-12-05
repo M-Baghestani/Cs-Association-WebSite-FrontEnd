@@ -1,47 +1,47 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-interface MatrixProps {
-  width?: number;
-  height?: number;
+interface MatrixRainProps {
   columns?: number;
   fontSize?: number;
-  speed?: number;
-  color?: string; // رنگ ماتریکس
+  color?: string;
 }
 
 export default function MatrixRain({
-  width,
-  height,
-  columns = 30,
-  fontSize = 16,
-  speed = 2,
-  color = "#3b82f6aa", // blue glow مشابه bg سایت
-}: MatrixProps) {
+  columns = 60,
+  fontSize = 14,
+  color = "#3b82f680",
+}: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    canvas.width = width || window.innerWidth;
-    canvas.height = height || window.innerHeight;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
 
-    const cols = columns;
-    const colHeight = Array(cols).fill(0);
-    const letters = "abcdefghijklmnopqrstuvwxyz0123456789".split("");
+    const colCount = columns;
+    const colHeight = Array(colCount).fill(0);
 
+    const chars =
+      "アァカサタナハマヤャラワガザダバパイィキシチニヒミリギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const charArray = chars.split("");
+    if (window.innerWidth < 768) {
+      columns = Math.floor(columns / 2);
+      fontSize = Math.min(fontSize, 10);
+    }
     const draw = () => {
-      ctx.fillStyle = "rgba(15,23,42,0.15)"; // مشابه bg-slate-950 با کمی شفافیت
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(15,23,42,0.1)"; // مشابه bg-slate-950 با کمی شفافیت
+      ctx.fillRect(0, 0, width, height);
 
       ctx.fillStyle = color;
       ctx.font = `${fontSize}px monospace`;
 
-      for (let i = 0; i < cols; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
+      for (let i = 0; i < colCount; i++) {
+        const text = charArray[Math.floor(Math.random() * charArray.length)];
         ctx.fillText(text, i * fontSize, colHeight[i] * fontSize);
 
-        if (colHeight[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        if (colHeight[i] * fontSize > height && Math.random() > 0.975) {
           colHeight[i] = 0;
         }
         colHeight[i]++;
@@ -50,21 +50,20 @@ export default function MatrixRain({
       requestAnimationFrame(draw);
     };
 
-    draw();
-
-    const handleResize = () => {
-      canvas.width = width || window.innerWidth;
-      canvas.height = height || window.innerHeight;
+    const resize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
     };
-    window.addEventListener("resize", handleResize);
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, [width, height, columns, fontSize, speed, color]);
+    window.addEventListener("resize", resize);
+    draw();
+    return () => window.removeEventListener("resize", resize);
+  }, [columns, fontSize, color]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10"
+      className="fixed top-0 left-0 w-full h-full -z-20 pointer-events-none"
     />
   );
 }
