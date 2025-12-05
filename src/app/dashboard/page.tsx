@@ -635,13 +635,18 @@ export default function DashboardPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  ایمیل (غیرقابل تغییر)
+                  ایمیل
                 </label>
                 <input
                   name="email"
+                  type="email"
                   value={profile.email}
-                  disabled
-                  className="w-full bg-slate-950/50 border border-gray-800 rounded-xl p-3 text-gray-500 cursor-not-allowed"
+                  onChange={(e) =>
+                    setProfile({ ...profile, email: e.target.value })
+                  } // 🚨 FIX: Add onChange handler
+                  required
+                  // 🚨 FIX: حذف disabled و استایل‌های مربوط به غیرفعال بودن
+                  className="w-full bg-slate-950 border border-gray-700 rounded-xl p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 />
               </div>
               <div className="pt-4 border-t border-white/5">

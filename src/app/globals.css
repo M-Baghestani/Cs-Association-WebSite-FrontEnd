@@ -20,16 +20,10 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  overflow-x: hidden;
 }
-[data-nextjs-toast] {
-  display: none !important;
-}
-div[class*="nextjs-toast-errors-parent"] {
-  display: none !important;
-}
+/* ... سایر استایل‌ها ... */
 
 
 @import "tailwindcss";
@@ -59,3 +53,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1) brightness(100%);
     cursor: pointer;
 }
+
+/* 💡 FIX: Imports for react-pdf styles updated to use the standard CJS/UMD path to resolve module not found error. */
+@import "react-pdf/dist/Page/AnnotationLayer.css";
+@import "react-pdf/dist/Page/TextLayer.css";

@@ -1,8 +1,9 @@
+// src/app/admin/edit-post/[id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2, FileText, Type, Save } from "lucide-react";
+import { Loader2, FileText, Type, Save, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import ImageUploader from "../../../../components/ImageUploader";
@@ -15,19 +16,30 @@ export default function EditPostPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // 🚨 FIX: افزودن publishedAt به State
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
     content: "",
     thumbnail: "",
     category: "ARTICLE",
+    publishedAt: new Date().toISOString().split('T')[0], // مقدار پیشفرض موقت
   });
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const res = await axios.get(`${API_URL}/posts/${params.id}`);
-        setFormData(res.data.data);
+        const data = res.data.data;
+        
+        // 🚨 FIX: تبدیل تاریخ ISO به YYYY-MM-DD برای فیلد input type="date"
+        if (data.publishedAt) {
+            data.publishedAt = new Date(data.publishedAt).toISOString().split('T')[0];
+        } else {
+            data.publishedAt = new Date().toISOString().split('T')[0];
+        }
+
+        setFormData(data);
       } catch (error) {
         toast.error("خبر یافت نشد.");
         router.push("/admin/manage-posts");
@@ -80,19 +92,37 @@ export default function EditPostPage() {
           label="تصویر شاخص خبر"
         />
 
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">عنوان خبر</label>
-          <div className="relative">
-            <Type className="absolute right-3 top-3 h-5 w-5 text-gray-500" />
-            <input
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              required
-              className="w-full rounded-xl bg-white/5 py-3 pr-10 pl-4 text-white focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <div className="grid md:grid-cols-3 gap-6">
+            {/* عنوان خبر */}
+            <div className="md:col-span-2">
+                <label className="mb-2 block text-sm text-gray-400">عنوان خبر</label>
+                <div className="relative">
+                    <Type className="absolute right-3 top-3 h-5 w-5 text-gray-500" />
+                    <input
+                    value={formData.title}
+                    onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                    className="w-full rounded-xl bg-white/5 py-3 pr-10 pl-4 text-white focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+            
+            {/* 🚨 FIX: فیلد تاریخ انتشار */}
+            <div>
+                <label className="mb-2 block text-sm text-gray-400">تاریخ انتشار</label>
+                <div className="relative">
+                    <Calendar className="absolute right-3 top-3.5 h-5 w-5 text-gray-500" />
+                    <input 
+                        type="date"
+                        value={formData.publishedAt}
+                        onChange={e => setFormData({ ...formData, publishedAt: e.target.value })}
+                        required
+                        className="w-full rounded-xl bg-white/5 py-3 pr-10 pl-4 text-white focus:ring-2 focus:ring-blue-500 ltr-text" 
+                    />
+                </div>
+            </div>
         </div>
 
         <div>

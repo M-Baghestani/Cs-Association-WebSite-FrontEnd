@@ -1,8 +1,9 @@
+// src/app/admin/create-post/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, FileText, Type, Save } from "lucide-react";
+import { Loader2, FileText, Type, Save, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import ImageUploader from "../../../components/ImageUploader";
@@ -13,6 +14,10 @@ export default function CreatePostPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [thumbnail, setThumbnail] = useState(""); 
+  
+  // 🚨 FIX 1: مقداردهی اولیه با تاریخ امروز (YYYY-MM-DD)
+  // این تضمین می‌کند که اینپوت در ابتدا دارای یک مقدار معتبر است.
+  const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -33,12 +38,14 @@ export default function CreatePostPage() {
         slug = (formData.get("title") as string).trim().replace(/\s+/g, '-').toLowerCase();
     }
 
+    // 💡 نکته: در اینجا ما thumbnail و publishedAt را مستقیماً از State می‌خوانیم.
     const data = {
       title: formData.get("title"),
       slug: slug,
       content: formData.get("content"),
-      thumbnail: thumbnail,
-      category: "ARTICLE" 
+      thumbnail: thumbnail, // مقدار به‌روز شده از ImageUploader
+      category: "ARTICLE",
+      publishedAt: publishedAt // 🚨 FIX 2: ارسال مقدار به‌روز شده از State
     };
 
     const token = localStorage.getItem("token");
@@ -81,8 +88,9 @@ export default function CreatePostPage() {
             <ImageUploader onUpload={(url) => setThumbnail(url)} label="تصویر شاخص خبر" />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-            <div>
+        <div className="grid md:grid-cols-3 gap-6">
+            {/* عنوان خبر */}
+            <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-gray-400">عنوان خبر</label>
                 <div className="relative">
                     <Type className="absolute right-3 top-3.5 h-5 w-5 text-gray-500" />
@@ -90,11 +98,28 @@ export default function CreatePostPage() {
                 </div>
             </div>
             
+            {/* 🚨 FIX: فیلد تاریخ انتشار */}
             <div>
-                <label className="mb-2 block text-sm font-medium text-gray-400">لینک (Slug)</label>
-                <input name="slug" className="w-full rounded-xl bg-slate-950 border border-gray-700 py-3 px-4 text-white focus:border-blue-500 outline-none transition ltr-text text-left" placeholder="news-slug-url" />
-                <p className="text-xs text-gray-600 mt-1">اختیاری (به صورت خودکار از عنوان ساخته می‌شود)</p>
+                <label className="mb-2 block text-sm font-medium text-gray-400">تاریخ انتشار</label>
+                <div className="relative">
+                    <Calendar className="absolute right-3 top-3.5 h-5 w-5 text-gray-500" />
+                    <input 
+                        type="date"
+                        value={publishedAt}
+                        // 🚨 FIX 3: مقدار جدید را مستقیماً از event.target.value به State منتقل می‌کند
+                        onChange={e => setPublishedAt(e.target.value)} 
+                        required
+                        className="w-full rounded-xl bg-slate-950 border border-gray-700 py-3 pr-10 pl-4 text-white focus:border-blue-500 outline-none transition ltr-text" 
+                    />
+                </div>
             </div>
+        </div>
+
+        {/* فیلد Slug */}
+        <div>
+            <label className="mb-2 block text-sm font-medium text-gray-400">لینک (Slug)</label>
+            <input name="slug" className="w-full rounded-xl bg-slate-950 border border-gray-700 py-3 px-4 text-white focus:border-blue-500 outline-none transition ltr-text text-left" placeholder="news-slug-url" />
+            <p className="text-xs text-gray-600 mt-1">اختیاری (به صورت خودکار از عنوان ساخته می‌شود)</p>
         </div>
 
         <div>

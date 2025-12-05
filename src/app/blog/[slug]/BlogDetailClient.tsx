@@ -1,13 +1,13 @@
-// src/app/blog/[slug]/page.tsx
+// src/app/blog/[slug]/BlogDetailClient.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Calendar, User, ArrowRight, MessageSquare, Send, Loader2, CheckCircle, Trash2, ArrowLeft, X, Edit2, MessageCircleOff } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { toShamsiDate } from "../../../utils/date"; 
+import { toShamsiDate } from "../../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -33,9 +33,8 @@ interface PostType {
     createdAt: string;
     summary?: string; 
     commentsCount?: number;
-    slug: string; // Ensure slug is available
+    slug: string;
 }
-
 
 // ------------------------------------
 // ۱. کامپوننت فرم ارسال نظر
@@ -116,10 +115,12 @@ const CommentsSection = ({ postId, initialComments }: { postId: string, initialC
     const [comments, setComments] = useState<CommentType[]>(initialComments);
 
     useEffect(() => {
-        setComments(initialComments);
+        // چون داده از Server می‌آید، باید ابتدا آن را به State منتقل کنیم
+        setComments(initialComments); 
     }, [initialComments]);
 
     const fetchComments = async () => {
+        // Fetch comments again after submission to update list
         try {
             const res = await axios.get(`${API_URL}/comments/${postId}`);
             setComments(res.data.data.filter((c: CommentType) => c.isApproved || false));
@@ -154,7 +155,7 @@ const CommentsSection = ({ postId, initialComments }: { postId: string, initialC
                             <div className="bg-slate-800/50 rounded-2xl rounded-tl-none p-5 border border-white/5">
                                 <div className="flex items-center justify-between mb-3 text-sm text-gray-300">
                                     <span className="font-bold text-white">{comment.user?.name || "کاربر انجمن"}</span>
-                                    <span className="text-xs text-gray-500">{toShamsiDate(comment.createdAt, 'DD MMMM YYYY')}</span> 
+                                    <span className="text-xs text-gray-500">{toShamsiDate(comment.createdAt, 'DD MMMM YYYY')}</span> {/* 🚨 FIX: شمسی‌سازی */}
                                 </div>
                                 <p className="text-gray-300 leading-relaxed text-sm">{comment.content}</p>
                             </div>
@@ -189,36 +190,29 @@ const CommentsSection = ({ postId, initialComments }: { postId: string, initialC
 
 
 // ------------------------------------
-// ۳. صفحه اصلی جزئیات پست (SinglePostPage)
+// ۳. صفحه اصلی جزئیات پست (Client Wrapper)
 // ------------------------------------
-export default function SinglePostPage() {
+export default function BlogDetailClient({ post: initialPost }: { post: PostType }) {
     const router = useRouter();
-    const params = useParams(); // Using useParams to get dynamic slug
     
-    const rawSlug = params.slug;
-    const slug = Array.isArray(rawSlug) ? rawSlug[0] : rawSlug;
-    const safeSlug = slug ? decodeURIComponent(slug) : '';
-
-    const [post, setPost] = useState<PostType | null>(null);
+    // 🚨 FIX: استفاده از Prop دریافتی به عنوان State اولیه
+    const [post, setPost] = useState(initialPost);
+    // 🚨 FIX: فچ کامنت‌ها باید در useEffect جداگانه انجام شود
     const [comments, setComments] = useState<CommentType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // Fetch post and initial comments
-    const fetchPostData = useCallback(async () => {
-        if (!safeSlug) return;
-        try {
-            const postRes = await axios.get(`${API_URL}/posts/slug/${safeSlug}`);
-            const postData = postRes.data.data;
-            setPost(postData);
 
-            if (postData?._id) {
-                const commentsRes = await axios.get(`${API_URL}/comments/${postData._id}`);
-                setComments(commentsRes.data.data.filter((c: CommentType) => c.isApproved || false));
-            }
+    const fetchCommentsAndStatus = useCallback(async () => {
+        try {
+            // 1. Fetch Comments
+            const commentsRes = await axios.get(`${API_URL}/comments/${post._id}`);
+            // 🚨 FIX: فیلتر کردن نظرات تایید نشده در فرانت‌اند
+            setComments(commentsRes.data.data.filter((c: CommentType) => c.isApproved || false));
             
+            // 2. Check Admin Status
             const userStr = localStorage.getItem("user");
             if (userStr) {
                 const user = JSON.parse(userStr);
@@ -226,17 +220,18 @@ export default function SinglePostPage() {
             }
 
         } catch (error) {
-            toast.error("خبر پیدا نشد.");
-            router.push("/blog");
+             console.error("Error fetching comments/status:", error);
         } finally {
             setLoading(false);
         }
-    }, [safeSlug, router]);
+    }, [post._id]);
 
     useEffect(() => {
-        fetchPostData();
-    }, [fetchPostData]);
+        // این useEffect کامنت‌ها و وضعیت ادمین را پس از رندر اولیه فچ می‌کند
+        fetchCommentsAndStatus();
+    }, [fetchCommentsAndStatus]);
 
+    // 🚨 FIX: تابع حذف خبر با مودال اختصاصی
     const openDeleteModal = () => { setShowDeleteModal(true); };
 
     const handleDeletePost = async () => {
@@ -244,7 +239,7 @@ export default function SinglePostPage() {
         const loadingToast = toast.loading("در حال حذف خبر...");
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/posts/${post?._id}`, {
+            await axios.delete(`${API_URL}/posts/${post._id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
@@ -258,9 +253,9 @@ export default function SinglePostPage() {
         }
     };
 
+    // 🚨 FIX: محتوای اصلی پست از prop (post.content) استفاده می‌کند.
+    if (!post || loading) return <div className="flex h-screen items-center justify-center text-white"><Loader2 className="animate-spin h-8 w-8 text-blue-500" /></div>;
 
-    if (loading) return <div className="flex h-screen items-center justify-center text-white"><Loader2 className="animate-spin h-8 w-8 text-blue-500" /></div>;
-    if (!post) return null;
 
     return (
         <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-3xl text-white">
@@ -272,7 +267,7 @@ export default function SinglePostPage() {
                 {isAdmin && (
                     <button 
                         type="button"
-                        onClick={openDeleteModal}
+                        onClick={openDeleteModal} // 🚨 FIX: Open modal instead of confirm
                         className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition"
                     >
                         <Trash2 className="h-4 w-4" /> حذف خبر

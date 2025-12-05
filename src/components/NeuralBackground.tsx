@@ -1,26 +1,83 @@
-// src/components/NeuralBackground.tsx
 "use client";
-
-// این کامپوننت از JavaScript استفاده نمی‌کند و کاملاً مبتنی بر CSS است
-// که باعث می‌شود بار پردازشی CPU موبایل حذف شود.
+import { useEffect, useRef } from "react";
 
 export default function NeuralBackground() {
-  return (
-    <div className="fixed inset-0 overflow-hidden -z-20">
-      
-      {/* 1. Global Dark Overlay (پس زمینه اصلی) */}
-      <div className="absolute inset-0 bg-slate-950 opacity-90"></div>
-      
-      {/* 2. Top-Left Blue Glow (نورپردازی آرام) */}
-      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-blue-500 rounded-full mix-blend-screen opacity-10 blur-3xl lg:w-[600px] lg:h-[600px]"></div>
-      
-      {/* 3. Bottom-Right Purple Glow (نورپردازی آرام) */}
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-500 rounded-full mix-blend-screen opacity-10 blur-3xl lg:w-[700px] lg:h-[700px]"></div>
-      
-      {/* 4. Fine Grid/Dot Pattern (شبیه‌سازی شبکه با گرادینت CSS) */}
-      {/* این افکت بسیار سبک‌تر از Canvas متحرک است */}
-      <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:25px_25px]"></div>
-      
-    </div>
-  );
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouse = { x: 0, y: 0 };
+
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d")!;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const count = width < 768 ? 40 : 70; // موبایل کمتر، دسکتاپ بیشتر
+    const points = Array.from({ length: count }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+    }));
+
+    const resize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", resize);
+
+    const update = () => {
+      ctx.fillStyle = "#0f172a"; // bg-slate-950
+      ctx.fillRect(0, 0, width, height);
+
+      const maxDist = width < 768 ? 8000 : 13000;
+
+      points.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.fillStyle = "#3b82f680"; // blue glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let other of points) {
+          const dx = p.x - other.x;
+          const dy = p.y - other.y;
+          const dist = dx * dx + dy * dy;
+
+          if (dist < maxDist) {
+            const alpha = 1 - dist / maxDist;
+            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha * 0.6})`;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.stroke();
+          }
+        }
+
+        const mdx = p.x - mouse.x;
+        const mdy = p.y - mouse.y;
+        const mdist = mdx * mdx + mdy * mdy;
+        if (mdist < 50000) {
+          p.x += mdx * 0.02;
+          p.y += mdy * 0.02;
+        }
+      });
+
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    update();
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full -z-10" />;
 }

@@ -48,7 +48,7 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className='flex gap-2 items-center'>
                 <span className='text-cyan-400'>📧</span>
-                <span className='text-gray-300'>mh.baghestani@khu.ac.ir</span>
+                <span className='text-gray-300'>info@cs-khu.ir</span>
             </li>
             <li className='flex gap-2 items-center'>
                 <span className='text-cyan-400'>📍</span>
@@ -94,7 +94,7 @@ export default function Footer() {
         <p className="text-gray-500 font-semibold text-xs">
            Developed With <span className="text-red-500">💖</span> by{' '}
            <a 
-               href="https://github.com/m.h.baghestani" 
+               href="https://github.com/m-baghestani" 
                target="_blank" 
                rel="noopener noreferrer"
                // حذف underline و افزودن shadow (نئون)

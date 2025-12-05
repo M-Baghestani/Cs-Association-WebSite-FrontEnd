@@ -1,20 +1,11 @@
-// src/app/blog/page.tsx
+// src/app/blog/BlogClientContent.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { Calendar, User, ArrowLeft, Loader2, FileText } from "lucide-react";
-import { Metadata } from "next"; // 🚨 FIX: ایمپورت Metadata
 import { toShamsiDate } from "../../utils/date"; // 🚨 FIX: ایمپورت توابع تاریخ
-
-// 🚨 FIX: سئوی اختصاصی صفحه لیست مقالات (Static Metadata)
-export const metadata: Metadata = {
-  title: 'وبلاگ و مقالات تخصصی انجمن علمی کامپیوتر خوارزمی',
-  description: 'جدیدترین مقالات تخصصی در حوزه برنامه‌نویسی، هوش مصنوعی، توسعه وب و علوم کامپیوتر از نویسندگان انجمن علمی دانشگاه خوارزمی.',
-  keywords: ['مقالات', 'وبلاگ', 'برنامه نویسی', 'هوش مصنوعی', 'کامپیوتر', 'دانشگاه خوارزمی'],
-};
-
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -26,11 +17,10 @@ interface PostType {
   thumbnail?: string;
   createdAt: string;
   author?: { name: string };
-  // 🚨 FIX: اضافه کردن summary به تایپ برای استفاده در description
   summary?: string; 
 }
 
-export default function BlogPage() {
+export default function BlogClientContent() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,7 +93,6 @@ export default function BlogPage() {
                    </span>
                 </div>
                 
-                {/* 🚨 FIX: از summary یا content استفاده کنید */}
                 <p className="text-sm text-gray-400 line-clamp-3 mb-4 leading-relaxed opacity-80">
                     {post.summary || post.content}
                 </p>
