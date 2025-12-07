@@ -1,15 +1,23 @@
+// src/types/event.ts
+
+export interface RegistrationStatus {
+  status: 'VERIFIED' | 'PENDING' | 'FAILED' | 'PAID' | 'REGISTERED';
+  mobile?: string;
+  telegram?: string;
+}
 
 export interface EventType {
   _id: string; 
   title: string;
   slug: string;
   description: string;
-  date: string; // تاریخ از MongoDB به شکل ISO String می‌آید
+  date: string; 
   location: string;
   capacity: number;
   registeredCount: number;
   isFree: boolean;
-  price?: number;
+  price: number; 
   thumbnail?: string;
-  creator: string; // ID سازنده
+  registrationStatus: 'SCHEDULED' | 'OPEN' | 'CLOSED';
+  userRegistration?: RegistrationStatus | null;
 }

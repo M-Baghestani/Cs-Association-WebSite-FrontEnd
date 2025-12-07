@@ -106,10 +106,8 @@
 
 import toast from 'react-hot-toast';
 import { Loader2, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { RegistrationStatus } from '../types/event';
 
-interface RegistrationStatus {
-  status: 'VERIFIED' | 'PENDING' | 'FAILED' | 'PAID';
-}
 
 interface RegisterButtonProps {
   eventId: string; isFree: boolean; price: number; capacity: number; registeredCount: number;
