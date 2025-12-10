@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Vazirmatn } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import AppContent from "../components/AppContent";
 
 const vazir = Vazirmatn({
@@ -101,6 +102,9 @@ export default function RootLayout({
 
         {/* محتوای اصلی شامل Navbar، Footer، شبکه عصبی و children */}
         <AppContent>{children}</AppContent>
+
+        {/* Vercel Speed Insights */}
+        <SpeedInsights />
 
         {/* Schema Markup برای سازمان */}
         <script
