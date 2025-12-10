@@ -11,6 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const combineDateTime = (date: string, time: string) => {
     if (!date) return new Date().toISOString();
+    // ترکیب تاریخ و ساعت برای ساخت فرمت ISO
     return time ? new Date(`${date}T${time}:00`).toISOString() : new Date(date).toISOString();
 };
 
@@ -19,10 +20,10 @@ export default function CreateEventPage() {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [status, setStatus] = useState('SCHEDULED');
+  
+  // مقادیر اولیه تاریخ و ساعت
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('10:00');
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endTime, setEndTime] = useState('17:00');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -76,6 +77,7 @@ export default function CreateEventPage() {
             price: formData.isFree ? 0 : Number(formData.price),
             thumbnail: imageUrl,
             registrationStatus: status,
+            // ترکیب تاریخ و ساعت انتخابی
             date: combineDateTime(startDate, startTime)
         };
 
@@ -118,13 +120,41 @@ export default function CreateEventPage() {
           <textarea name="description" value={formData.description} onChange={handleChange} rows={6} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none" placeholder="جزئیات رویداد..." required />
         </div>
 
+        {/* ✅ بخش جدید: تاریخ و ساعت برگزاری */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-800/50 p-4 rounded-xl border border-white/5">
+            <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-gray-400">
+                    <Calendar className="h-4 w-4"/> تاریخ برگزاری
+                </label>
+                <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)} 
+                    className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" 
+                    required 
+                />
+            </div>
+            <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-gray-400">
+                    <Clock className="h-4 w-4"/> ساعت شروع
+                </label>
+                <input 
+                    type="time" 
+                    value={startTime} 
+                    onChange={(e) => setStartTime(e.target.value)} 
+                    className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" 
+                    required 
+                />
+            </div>
+        </div>
+
         {/* وضعیت رویداد */}
         <div>
           <label className="mb-2 block text-sm text-gray-400">وضعیت رویداد</label>
           <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none">
             <option value="SCHEDULED">زمان‌بندی شده</option>
-            <option value="OPEN">فعال</option>
-            <option value="CLOSED">بسته</option>
+            <option value="OPEN">فعال (ثبت‌نام باز)</option>
+            <option value="CLOSED">بسته (پایان یافته)</option>
           </select>
         </div>
 
