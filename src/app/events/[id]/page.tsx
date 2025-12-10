@@ -4,17 +4,20 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, DollarSign } from 'lucide-react';
 import EventRegisterWrapper from './EventRegisterWrapper';
-// اگر می‌خواهید فرم سوالات را اینجا هم نمایش دهید کامنت زیر را باز کنید
-// import EventQuestionForm from '../../../components/EventQuestionForm';
+// import EventQuestionForm from '../../../components/EventQuestionForm'; // در صورت نیاز آنکامنت کنید
 import { EventType } from '../../../types/event';
 import { toShamsiDate } from '../../../utils/date';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// تابع دریافت رویداد با ID
+// تعریف نوع ورودی صفحه طبق استاندارد Next.js 15
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+// تابع دریافت رویداد
 async function fetchEventById(id: string): Promise<EventType | null> {
   try {
-    // درخواست به روت GET /api/events/:id
     const res = await fetch(`${API_URL}/events/${id}`, { cache: 'no-store' });
     const json = await res.json();
     if (json.success) return json.data;
@@ -25,22 +28,24 @@ async function fetchEventById(id: string): Promise<EventType | null> {
   }
 }
 
-// تولید متادیتا (عنوان صفحه و ...)
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const event = await fetchEventById(params.id);
+// تولید متادیتا (اصلاح شده برای Next.js 15)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params; // 👈 باید await شود
+  const event = await fetchEventById(id);
+  
   if (!event) return { title: "رویداد یافت نشد" };
   return { title: `${event.title} | رویداد انجمن علمی کامپیوتر` };
 }
 
-// کامپوننت صفحه جزئیات
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
-  // دریافت اطلاعات رویداد با استفاده از ID
-  const event = await fetchEventById(params.id);
+// کامپوننت صفحه جزئیات (اصلاح شده)
+export default async function EventDetailPage({ params }: Props) {
+  const { id } = await params; // 👈 در نسخه‌های جدید params یک Promise است
+  const event = await fetchEventById(id);
 
   if (!event) {
     return (
-        <div className="min-h-screen pt-32 text-center">
-            <h1 className="text-white text-2xl font-bold">رویداد یافت نشد 😕</h1>
+        <div className="min-h-screen pt-32 text-center text-white">
+            <h1 className="text-2xl font-bold">رویداد یافت نشد 😕</h1>
             <Link href="/events" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
                 بازگشت به لیست رویدادها
             </Link>
@@ -101,7 +106,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
         </p>
       </div>
 
-      {/* بخش ثبت‌نام (و مودال‌ها) */}
+      {/* بخش ثبت‌نام */}
       <div className="mt-10">
         <EventRegisterWrapper event={event} />
       </div>
