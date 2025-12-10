@@ -30,7 +30,7 @@ import { toShamsiDate, checkIsBirthday } from "../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// 🚨 تابع کمکی برای ساخت آدرس مطلق (برای ریسیت نشدن عکس)
+// 🚨 تابع کمکی برای ساخت آدرس مطلق
 const getReceiptUrl = (path: string | null | undefined) => {
   if (!path) return "#";
   if (path.startsWith("http")) return path;
@@ -48,7 +48,7 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
 
-  // 🚨 FIX 1: Add new profile fields
+  // استیت پروفایل
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [ticketToClose, setTicketToClose] = useState<string | null>(null);
 
-  const isTodayBirthday = checkIsBirthday(profile.dateOfBirth); // 🚨 FIX: چک کردن تولد
+  const isTodayBirthday = checkIsBirthday(profile.dateOfBirth);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -74,37 +74,52 @@ export default function DashboardPage() {
     fetchDashboardData(token);
   }, [router]);
 
+  // ✅ اصلاح شده: دریافت اطلاعات کاربر از سرور به جای LocalStorage
   const fetchDashboardData = async (token: string) => {
     setLoading(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
 
+      // 1. دریافت رویدادها
       const eventsRes = await axios.get(`${API_URL}/events/my-registrations`, {
         headers,
       });
       setEvents(eventsRes.data.data);
 
+      // 2. دریافت تیکت‌ها
       const msgRes = await axios.get(`${API_URL}/contact/my`, { headers });
       setTickets(msgRes.data.data);
 
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const u = JSON.parse(userStr);
+      // 3. ✅ دریافت اطلاعات پروفایل از سرور (بخش جدید)
+      // نکته: اگر روت بک‌اند شما /auth/me است، خط زیر را تغییر دهید
+      const userRes = await axios.get(`${API_URL}/auth/profile`, { headers });
+      
+      const userData = userRes.data.data || userRes.data.user; // بسته به ساختار پاسخ بک‌اند
+
+      if (userData) {
+        // آپدیت کردن LocalStorage برای هماهنگی
+        localStorage.setItem("user", JSON.stringify(userData));
+
         setProfile((prev) => ({
           ...prev,
-          name: u.name || "",
-          email: u.email || "",
-          phoneNumber: u.phoneNumber || "",
-          // 🚨 FIX 2: Load new fields, converting DateOfBirth to input format (YYYY-MM-DD)
-          profileImage: u.profileImage || "",
-          dateOfBirth: u.dateOfBirth
-            ? new Date(u.dateOfBirth).toISOString().split("T")[0]
+          name: userData.name || "",
+          email: userData.email || "",
+          phoneNumber: userData.phoneNumber || "",
+          profileImage: userData.profileImage || "",
+          dateOfBirth: userData.dateOfBirth
+            ? new Date(userData.dateOfBirth).toISOString().split("T")[0]
             : "",
         }));
       }
-    } catch (error) {
+
+    } catch (error: any) {
       console.error(error);
-      toast.error("خطا در بارگذاری اطلاعات داشبورد.");
+      // اگر توکن نامعتبر بود، لاگ‌اوت کن
+      if (error.response?.status === 401) {
+        handleLogout();
+      } else {
+        toast.error("خطا در دریافت اطلاعات داشبورد.");
+      }
     } finally {
       setLoading(false);
     }
@@ -134,7 +149,6 @@ export default function DashboardPage() {
     setShowCloseModal(true);
   };
 
-  // 🚨 FIX: Final close logic moved to a separate function
   const confirmCloseTicket = async () => {
     if (!ticketToClose) return;
     const ticketId = ticketToClose;
@@ -190,10 +204,10 @@ export default function DashboardPage() {
       const res = await axios.put(`${API_URL}/auth/profile`, profile, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      
+      const savedUser = res.data.user || res.data.data;
+      localStorage.setItem("user", JSON.stringify(savedUser));
 
-      // Update DOB format after save (API returns ISO string, convert to YYYY-MM-DD for input)
-      const savedUser = res.data.user;
       setProfile((prev) => ({
         ...prev,
         password: "",
@@ -230,7 +244,6 @@ export default function DashboardPage() {
       <aside className="lg:w-1/4">
         <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sticky top-28 shadow-xl">
           <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
-            {/* 🚨 FIX: Dynamic Avatar/Image Display */}
             {profile.profileImage ? (
               <img
                 src={profile.profileImage}
@@ -239,11 +252,11 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                {profile.name.charAt(0).toUpperCase()}
+                {profile.name ? profile.name.charAt(0).toUpperCase() : <User className="w-6 h-6"/>}
               </div>
             )}
             <div className="overflow-hidden">
-              <h2 className="font-bold text-white truncate">{profile.name}</h2>
+              <h2 className="font-bold text-white truncate">{profile.name || "کاربر"}</h2>
               <p className="text-xs text-gray-400 truncate">{profile.email}</p>
             </div>
           </div>
@@ -290,9 +303,9 @@ export default function DashboardPage() {
           </nav>
         </div>
       </aside>
+      
       {/* CONTENT */}
       <main className="lg:w-3/4">
-        {/* 🚨 FIX: BIRTHDAY CELEBRATION BANNER */}
         {isTodayBirthday && (
           <div className="w-full bg-pink-900/40 border border-pink-500/50 p-4 rounded-xl text-white text-center mb-6 animate-pulse">
             <h3 className="font-bold text-xl text-pink-300">
@@ -347,14 +360,11 @@ export default function DashboardPage() {
                           ? reg.pricePaid.toLocaleString("fa-IR") + " تومان"
                           : "رایگان"}
                       </p>
-
-                      {/* 👇 نمایش اطلاعات تماس ثبت شده */}
                       {reg.mobile && (
                         <p className="text-xs text-gray-500">
                           📱 تماس ثبت شده: {reg.mobile}
                         </p>
                       )}
-
                       {reg.receiptImage && (
                         <a
                           href={getReceiptUrl(reg.receiptImage)}
@@ -426,7 +436,6 @@ export default function DashboardPage() {
                     key={ticket._id}
                     className="bg-slate-900 border border-white/10 p-6 rounded-2xl"
                   >
-                    {/* هدر تیکت */}
                     <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-4">
                       <div>
                         <h4 className="font-bold text-white text-lg flex items-center gap-2">
@@ -451,7 +460,6 @@ export default function DashboardPage() {
                       )}
                     </div>
 
-                    {/* چت */}
                     <div className="space-y-3 max-h-60 overflow-y-auto pr-2 mb-4 scrollbar-thin scrollbar-thumb-gray-700">
                       {ticket.messages.map((msg: any, idx: number) => (
                         <div
@@ -521,7 +529,6 @@ export default function DashboardPage() {
                       ))}
                     </div>
 
-                    {/* فرم پاسخ */}
                     {ticket.status === "OPEN" ? (
                       <form
                         onSubmit={(e) => {
@@ -566,7 +573,6 @@ export default function DashboardPage() {
               onSubmit={handleUpdateProfile}
               className="space-y-6 bg-slate-900 p-8 rounded-2xl border border-white/10 shadow-2xl"
             >
-              {/* 🚨 FIX 3: Profile Image Uploader */}
               <div className="mx-auto w-40 mb-8">
                 <ImageUploader
                   onUpload={(url) =>
@@ -592,7 +598,6 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* شماره تماس */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
                   شماره تماس
@@ -608,7 +613,6 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* 🚨 FIX 4: تاریخ تولد */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
                   تاریخ تولد (اختیاری)
@@ -622,7 +626,6 @@ export default function DashboardPage() {
                     onChange={(e) =>
                       setProfile({ ...profile, dateOfBirth: e.target.value })
                     }
-                    // 🚨 FIX: افزودن کلاس ltr-text برای نمایش صحیح تقویم و متن در ورودی تاریخ
                     className="w-full bg-slate-950 border border-gray-700 rounded-xl py-3 pr-10 pl-4 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ltr-text"
                   />
                 </div>
@@ -643,9 +646,8 @@ export default function DashboardPage() {
                   value={profile.email}
                   onChange={(e) =>
                     setProfile({ ...profile, email: e.target.value })
-                  } // 🚨 FIX: Add onChange handler
+                  }
                   required
-                  // 🚨 FIX: حذف disabled و استایل‌های مربوط به غیرفعال بودن
                   className="w-full bg-slate-950 border border-gray-700 rounded-xl p-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 />
               </div>
@@ -675,7 +677,7 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-      + {/* 🚨 MODAL: پنجره مودال اختصاصی برای بستن گفتگو (Ticket) */}
+
       {showCloseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200">

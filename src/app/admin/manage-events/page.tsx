@@ -139,7 +139,7 @@ export default function ManageEventsPage() {
                     </td>
                     <td className="px-6 py-4 flex gap-2">
                       <Link
-                        href={`/events/${event.slug}`}
+                        href={`/events/${event._id}`}
                         target="_blank"
                         className="p-2 text-blue-400 bg-blue-500/10 rounded-lg"
                       >
