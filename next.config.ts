@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    return config;
+  },
   devIndicators: {
     buildActivity: false,
     appIsrStatus: false,
