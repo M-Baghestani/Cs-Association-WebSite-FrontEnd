@@ -1,7 +1,7 @@
-// src/app/events/[slug]/EventRegisterWrapper.tsx
+// src/app/events/[id]/EventRegisterWrapper.tsx
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react'; // 👈 useEffect اضافه شد
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import RegisterButton from '../../../components/RegisterButton'; 
@@ -20,11 +20,10 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
   const [registeredCount, setRegisteredCount] = useState(event.registeredCount);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 🟢 تغییر: مدیریت دو مودال جداگانه برای رایگان و پولی
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isFreeModalOpen, setIsFreeModalOpen] = useState(false);
 
-  // تابع دریافت آخرین وضعیت ثبت‌نام
+  // تابع دریافت آخرین وضعیت ثبت‌نام از سرور
   const fetchRegistrationStatus = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -37,46 +36,54 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
             headers: { Authorization: `Bearer ${token}` }
         });
         
+        // آپدیت کردن استیت‌ها با داده تازه
         setUserRegistration(res.data.data.registration || null);
         setRegisteredCount(res.data.data.registeredCount);
 
     } catch (error) {
-        setUserRegistration(null);
+        console.error("Error fetching status", error);
     }
   }, [event._id]);
 
+  // ✅ اضافه شده: محض لود شدن کامپوننت، وضعیت دقیق را چک کن
+  useEffect(() => {
+    fetchRegistrationStatus();
+  }, [fetchRegistrationStatus]);
 
-  // هندلر مشترک موفقیت (بستن مودال‌ها و آپدیت)
+  // هندلر مشترک موفقیت
   const handleSuccess = async () => {
     toast.success("ثبت‌نام شما با موفقیت انجام شد ✅");
-    await fetchRegistrationStatus();
     setIsPaymentModalOpen(false);
     setIsFreeModalOpen(false);
+    // بلافاصله وضعیت جدید را از سرور می‌گیریم تا دکمه آپدیت شود
+    await fetchRegistrationStatus();
   }
 
   // هندلر کلیک روی دکمه ثبت‌نام
   const handleRegisterClick = () => {
+    // ✅ چک کردن اینکه آیا کاربر قبلا ثبت‌نام کرده؟
+    if (userRegistration) {
+        toast.success("شما قبلاً در این رویداد ثبت‌نام کرده‌اید.");
+        return; // اگر ثبت‌نام کرده، هیچ کاری نکن
+    }
+
     if (!localStorage.getItem('token')) {
         toast.error("لطفاً ابتدا وارد حساب کاربری خود شوید.");
         return;
     }
     
-    // اگر رایگان است -> مودال رایگان (تلگرام + سوال)
     if (event.isFree) {
       setIsFreeModalOpen(true);
     } else {
-      // اگر پولی است -> مودال پرداخت
       setIsPaymentModalOpen(true);
     }
   };
 
-  // 🟢 تابع جدید: ارسال نهایی ثبت‌نام رایگان (توسط مودال صدا زده می‌شود)
   const submitFreeRegistration = async (data: { telegram: string; questions: string[] }) => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
 
       try {
-        // ارسال آیدی تلگرام و سوالات به بک‌اند
         await axios.post(`${API_URL}/events/${event._id}/register`, 
             {
                 telegram: data.telegram,
@@ -87,8 +94,7 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
             }
         );
         
-        // در صورت موفقیت
-        handleSuccess();
+        await handleSuccess(); // ✅ منتظر ماندن برای آپدیت وضعیت
         
       } catch (error: any) {
         toast.error(error.response?.data?.message || 'خطا در ثبت‌نام.');
@@ -97,13 +103,12 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
       }
   };
 
-  // چک کردن وضعیت رویداد
   if (event.registrationStatus === 'CLOSED') {
-    return <div className="text-red-400 font-bold p-4 bg-red-900/20 rounded-lg">مهلت ثبت‌نام به پایان رسیده است.</div>;
+    return <div className="text-red-400 font-bold p-4 bg-red-900/20 rounded-lg text-center border border-red-500/30">مهلت ثبت‌نام به پایان رسیده است.</div>;
   }
   
   if (event.registrationStatus === 'SCHEDULED') {
-    return <div className="text-yellow-400 font-bold p-4 bg-yellow-900/20 rounded-lg">ثبت‌نام هنوز شروع نشده است.</div>;
+    return <div className="text-yellow-400 font-bold p-4 bg-yellow-900/20 rounded-lg text-center border border-yellow-500/30">ثبت‌نام هنوز شروع نشده است.</div>;
   }
 
   return (
@@ -114,13 +119,12 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
         price={event.price}
         capacity={event.capacity}
         registeredCount={registeredCount}
-        userRegistration={userRegistration}
+        userRegistration={userRegistration} // این پراپ باعث می‌شود دکمه ظاهر "ثبت‌نام شده" بگیرد
         onRegisterSuccess={handleSuccess}
         handleRegister={handleRegisterClick}
         isLoading={isLoading}
       />
       
-      {/* 🟢 مودال ثبت‌نام رایگان (تلگرام + سوال) */}
       {event.isFree && (
         <FreeRegisterModal
             isOpen={isFreeModalOpen}
@@ -130,7 +134,6 @@ export default function EventRegisterWrapper({ event }: EventRegisterWrapperProp
         />
       )}
 
-      {/* 🟢 مودال پرداخت (برای رویدادهای پولی) */}
       {!event.isFree && (
         <PaymentProofModal
           isOpen={isPaymentModalOpen}
