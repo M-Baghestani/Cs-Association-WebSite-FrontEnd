@@ -1,30 +1,44 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Calendar, MapPin, Users, Clock, Share2, DollarSign } from "lucide-react";
-import EventRegisterWrapper from "./EventRegisterWrapper"; // مطمئن شوید این فایل وجود دارد
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import EventRegisterWrapper from "./EventRegisterWrapper"; 
 import { toShamsiDate } from "../../../utils/date";
 
-// جلوگیری از کش برای اطلاعات دقیق
+// جلوگیری از کش برای دریافت اطلاعات دقیق و لحظه‌ای
 export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+// تابع دریافت اطلاعات تک رویداد با ID
 async function getEventData(id: string) {
   try {
-    // ✅ درخواست با ID
-    const res = await fetch(`${API_URL}/events/${id}`, { cache: 'no-store' });
-    if (!res.ok) return null;
+    // ✅ درخواست مستقیم با ID
+    const res = await fetch(`${API_URL}/events/${id}`, { 
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!res.ok) {
+        console.error(`Fetch error: ${res.status}`);
+        return null;
+    }
+
     const json = await res.json();
     return json.success ? json.data : null;
   } catch (error) {
+    console.error("Network error fetching event:", error);
     return null;
   }
 }
 
-// ✅ پارامتر ورودی params باید شامل id باشد
-export default async function EventDetailPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: { id: string };
+}
+
+export default async function EventDetailPage({ params }: PageProps) {
   const event = await getEventData(params.id);
 
+  // اگر رویداد پیدا نشد، صفحه 404 نشان بده
   if (!event) {
     notFound();
   }
@@ -33,14 +47,14 @@ export default async function EventDetailPage({ params }: { params: { id: string
     <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-6xl text-white">
       
       {/* هدر و تصویر */}
-      <div className="relative w-full h-64 md:h-[450px] rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/10">
+      <div className="relative w-full h-64 md:h-[450px] rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/10 bg-slate-900">
         <Image
           src={event.thumbnail || "https://placehold.co/1200x600/1e293b/ffffff?text=Event+Cover"}
           alt={event.title}
           fill
           className="object-cover"
           priority
-          unoptimized
+          unoptimized // برای جلوگیری از مشکلات لود عکس در برخی سرورها
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         
@@ -76,7 +90,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
 
         {/* ستون کناری: اطلاعات و ثبت‌نام */}
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-white/10 p-6 rounded-3xl sticky top-28">
+          <div className="bg-slate-900 border border-white/10 p-6 rounded-3xl sticky top-28 shadow-xl">
             <h3 className="font-bold text-lg mb-6 border-b border-white/10 pb-4">اطلاعات برگزاری</h3>
             
             <div className="space-y-5">
@@ -114,7 +128,7 @@ export default async function EventDetailPage({ params }: { params: { id: string
             </div>
 
             <div className="mt-8 pt-6 border-t border-white/10">
-              {/* کامپوننت ثبت‌نام */}
+              {/* کامپوننت کلاینت برای دکمه ثبت نام */}
               <EventRegisterWrapper event={event} />
             </div>
           </div>
