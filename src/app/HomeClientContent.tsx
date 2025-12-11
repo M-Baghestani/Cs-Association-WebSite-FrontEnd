@@ -117,7 +117,7 @@ export default function HomeClientContent() {
                 >
                     مشاهده جزئیات
                 </Link>
-                </div>
+            </div>
             </div>
         </div>
       </motion.div>
