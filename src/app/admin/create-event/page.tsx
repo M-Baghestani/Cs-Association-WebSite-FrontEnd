@@ -19,22 +19,17 @@ export default function CreateEventPage() {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [status, setStatus] = useState('SCHEDULED');
-  
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('10:00');
-
-  // ✅ استیت برای سوالات
   const [hasQuestions, setHasQuestions] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
-    slug: '',
     description: '',
     location: '',
     capacity: 50,
     isFree: true,
     price: 0,
-    registrationLink: ''
   });
 
   useEffect(() => {
@@ -70,7 +65,6 @@ export default function CreateEventPage() {
         const token = localStorage.getItem("token");
         const payload = {
             title: formData.title,
-            slug: formData.slug,
             description: formData.description,
             location: formData.location,
             capacity: formData.capacity,
@@ -79,7 +73,6 @@ export default function CreateEventPage() {
             thumbnail: imageUrl,
             registrationStatus: status,
             date: combineDateTime(startDate, startTime),
-            // ✅ ارسال فیلد جدید
             hasQuestions: hasQuestions
         };
 
@@ -104,17 +97,13 @@ export default function CreateEventPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 p-8 rounded-2xl border border-white/10 shadow-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+        {/* فقط عنوان */}
+        <div>
             <label className="mb-2 block text-sm text-gray-400">عنوان رویداد</label>
             <input name="title" value={formData.title} onChange={handleChange} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none" required />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm text-gray-400">آدرس URL (Slug)</label>
-            <input name="slug" value={formData.slug} onChange={handleChange} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none" required />
-          </div>
         </div>
 
+        {/* بقیه فرم مثل قبل */}
         <div>
           <label className="mb-2 block text-sm text-gray-400">توضیحات کامل</label>
           <textarea name="description" value={formData.description} onChange={handleChange} rows={6} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none" placeholder="جزئیات رویداد..." required />
@@ -144,7 +133,6 @@ export default function CreateEventPage() {
           </select>
         </div>
 
-        {/* ✅ بخش تنظیمات سوالات */}
         <div className="bg-slate-800/30 p-4 rounded-xl border border-white/5 flex items-center gap-3">
             <input 
                 type="checkbox" 

@@ -7,7 +7,6 @@ export interface RegistrationStatus {
 export interface EventType {
   _id: string;
   title: string;
-  slug: string;
   description: string;
   date: string;
   location: string;
