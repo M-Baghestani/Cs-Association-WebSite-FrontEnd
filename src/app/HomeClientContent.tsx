@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Cpu, Sparkles, Calendar, MapPin, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // ✅ AnimatePresence اضافه شد
 import Image from "next/image";
 import axios from "axios"; 
 import CountdownTimer from "../components/Event/CountdownTimer"; 
@@ -11,10 +11,21 @@ import { toShamsiDate } from "../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+// ✅ لیست جملاتی که قرار است نمایش داده شوند
+const SLOGANS = [
+  "پیشرو در برگزاری رویدادهای تخصصی",
+  "مرجع یادگیری مهارت‌های برنامه‌نویسی",
+  "پلی میان دانشگاه و صنعت تکنولوژی",
+  "فضایی پویا برای رشد و نوآوری"
+];
+
 export default function HomeClientContent() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // ✅ استیت برای ایندکس متن متحرک
+  const [sloganIndex, setSloganIndex] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,11 +35,7 @@ export default function HomeClientContent() {
       try {
         const res = await axios.get(`${API_URL}/events`);
         if (res.data.success) {
-          // ✅ فیلتر مهم: حذف رویدادهای بسته شده (CLOSED)
-          // فقط رویدادهای OPEN (باز) و SCHEDULED (زمان‌بندی شده) را نگه دار
           const activeEvents = res.data.data.filter((e: any) => e.registrationStatus !== 'CLOSED');
-          
-          // نمایش ۳ تای اول از لیست فیلتر شده
           setEvents(activeEvents.slice(0, 3));
         }
       } catch (error) {
@@ -38,10 +45,16 @@ export default function HomeClientContent() {
       }
     }
     fetchEvents();
+
+    // ✅ تایمر برای تغییر متن هر 3 ثانیه
+    const interval = setInterval(() => {
+      setSloganIndex((prev) => (prev + 1) % SLOGANS.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const HomeEventCard = ({ event, index }: { event: any, index: number }) => {
-    // تشخیص وضعیت زمان‌بندی شده
     const isScheduled = event.registrationStatus === 'SCHEDULED';
 
     return (
@@ -54,7 +67,6 @@ export default function HomeClientContent() {
         className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
       >
         
-        {/* ✅ نمایش تایمر برای رویدادهای زمان‌بندی شده */}
         {isScheduled && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 text-center border border-yellow-500/20">
              <CountdownTimer 
@@ -68,7 +80,6 @@ export default function HomeClientContent() {
         )}
 
         <div className={`flex flex-col h-full ${isScheduled ? 'opacity-40 pointer-events-none filter grayscale-50' : ''}`}>
-            
             <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
                 <Image
                 src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
@@ -124,7 +135,6 @@ export default function HomeClientContent() {
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
               className="mb-6 flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-blue-400 backdrop-blur-md"
             >
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -140,8 +150,20 @@ export default function HomeClientContent() {
               </span>
             </h1>
 
-            <div className="h-8 sm:h-10 text-lg sm:text-2xl text-blue-300 font-bold mt-2">
-               <p>پیشرو در برگزاری رویدادهای تخصصی</p>
+            {/* ✅ بخش متن متحرک */}
+            <div className="h-10 sm:h-12 flex items-center justify-center mt-2 overflow-hidden relative w-full">
+               <AnimatePresence mode="wait">
+                 <motion.p
+                    key={sloganIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="text-lg sm:text-2xl text-blue-300 font-bold absolute"
+                 >
+                    {SLOGANS[sloganIndex]}
+                 </motion.p>
+               </AnimatePresence>
             </div>
             
             <motion.p 
