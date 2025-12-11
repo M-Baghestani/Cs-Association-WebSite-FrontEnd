@@ -49,7 +49,7 @@ export default function BlogClientContent() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-6xl">
+    <div className="min-h-screen px-4 pt-10 pb-20 container mx-auto max-w-6xl">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-white mb-4">وبلاگ و مقالات 📚</h1>
         <p className="text-gray-400">تازه‌ترین اطلاعیه‌ها و مقالات آموزشی انجمن</p>

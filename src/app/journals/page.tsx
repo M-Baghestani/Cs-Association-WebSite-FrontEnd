@@ -47,7 +47,7 @@ export default function JournalsPage() {
     );
 
   return (
-    <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-6xl">
+    <div className="min-h-screen px-4 pt-10 pb-20 container mx-auto max-w-6xl">
       <div className="text-center py-10 mb-10 border-b border-white/10">
         <h1 className="text-4xl font-bold text-white mb-4">
           نشریه صفر و یک 🗞️
