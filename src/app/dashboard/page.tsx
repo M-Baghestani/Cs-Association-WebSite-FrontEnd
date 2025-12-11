@@ -23,8 +23,8 @@ import {
   X,
   Calendar,
 } from "lucide-react";
-import ImageUploader from "../../components/ImageUploader"; //
-import { toShamsiDate, checkIsBirthday } from "../../utils/date"; //
+import ImageUploader from "../../components/ImageUploader";
+import { toShamsiDate, checkIsBirthday } from "../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -38,9 +38,7 @@ const getReceiptUrl = (path: string | null | undefined) => {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"events" | "messages" | "profile">(
-    "events"
-  );
+  const [activeTab, setActiveTab] = useState<"events" | "messages" | "profile">("events");
   const [loading, setLoading] = useState(true);
 
   const [events, setEvents] = useState<any[]>([]);
@@ -371,9 +369,10 @@ export default function DashboardPage() {
                   >
                     <div
                       className={`absolute top-0 right-0 w-1 h-full rounded-l-full ${
-                        reg.status === "VERIFIED"
+                        // ✅ اصلاح شرط: نمایش سبز برای APPROVED و PAID هم
+                        reg.status === "VERIFIED" || reg.status === "APPROVED" || reg.status === "PAID"
                           ? "bg-green-500"
-                          : reg.status === "PENDING"
+                          : reg.status === "PENDING" || reg.status === "RECEIPT_PENDING"
                           ? "bg-yellow-500"
                           : "bg-red-500"
                       }`}
@@ -407,18 +406,20 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-center pt-3 border-t border-white/5">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
-                          reg.status === "VERIFIED"
+                          // ✅ اصلاح استایل برای وضعیت‌های تایید شده
+                          reg.status === "VERIFIED" || reg.status === "APPROVED" || reg.status === "PAID"
                             ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                            : reg.status === "PENDING"
+                            : reg.status === "PENDING" || reg.status === "RECEIPT_PENDING"
                             ? "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
                             : "bg-red-500/10 text-red-400 border border-red-500/20"
                         }`}
                       >
-                        {reg.status === "VERIFIED" ? (
+                        {/* ✅ اصلاح متن و آیکون */}
+                        {(reg.status === "VERIFIED" || reg.status === "APPROVED" || reg.status === "PAID") ? (
                           <>
                             <CheckCircle className="h-3 w-3" /> تأیید شده
                           </>
-                        ) : reg.status === "PENDING" ? (
+                        ) : (reg.status === "PENDING" || reg.status === "RECEIPT_PENDING") ? (
                           <>
                             <Clock className="h-3 w-3" /> در انتظار بررسی
                           </>
@@ -430,7 +431,7 @@ export default function DashboardPage() {
                       </span>
                       {reg.event && (
                         <Link
-                          // ✅ اصلاح لینک: استفاده از ID اگر Slug نبود
+                          // ✅ استفاده از ID اگر Slug وجود نداشت
                           href={`/events/${reg.event.slug || reg.event._id}`}
                           className="text-blue-400 hover:text-white text-sm transition"
                         >
