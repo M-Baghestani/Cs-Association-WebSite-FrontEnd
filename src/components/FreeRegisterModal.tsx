@@ -1,6 +1,7 @@
+// src/components/FreeRegisterModal.tsx
 "use client";
 
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 interface FreeRegisterModalProps {
@@ -13,19 +14,36 @@ interface FreeRegisterModalProps {
 
 export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading, hasQuestions = false }: FreeRegisterModalProps) {
   const [telegram, setTelegram] = useState("");
-  // تغییر به یک رشته متنی برای دریافت سوالات تشریحی
-  const [userQuestion, setUserQuestion] = useState("");
+  // تغییر به آرایه برای سوالات چندگانه
+  const [questions, setQuestions] = useState<string[]>(['']);
 
   if (!isOpen) return null;
 
+  // توابع مدیریت سوالات
+  const handleQuestionChange = (index: number, value: string) => {
+    const newQuestions = [...questions];
+    newQuestions[index] = value;
+    setQuestions(newQuestions);
+  };
+
+  const addQuestionField = () => {
+    setQuestions([...questions, '']);
+  };
+
+  const removeQuestionField = (index: number) => {
+    const newQuestions = questions.filter((_, i) => i !== index);
+    setQuestions(newQuestions);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // تبدیل متن سوال به آرایه برای ارسال به بک‌اند
-    const questionsPayload = hasQuestions && userQuestion.trim() ? [userQuestion] : [];
+    
+    // فیلتر کردن سوالات خالی
+    const validQuestions = hasQuestions ? questions.filter(q => q.trim().length > 0) : [];
     
     onSubmit({ 
         telegram, 
-        questions: questionsPayload
+        questions: validQuestions
     });
   };
 
@@ -33,8 +51,8 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-md bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-slate-800/50">
+      <div className="relative w-full max-w-md bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-slate-800/50 sticky top-0 z-10">
           <h3 className="font-bold text-white">تکمیل ثبت‌نام</h3>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-white transition">
             <X className="w-5 h-5" />
@@ -54,7 +72,7 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
             />
           </div>
 
-          {/* ✅ بخش سوالات از مهمان */}
+          {/* ✅ بخش سوالات چندگانه */}
           {hasQuestions && (
               <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
                   <div className="flex items-center gap-2">
@@ -62,15 +80,36 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
                     <span className="text-xs text-gray-500">(اختیاری)</span>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">اگر سوالی از مهمان دارید، اینجا بنویسید:</label>
-                    <textarea 
-                      rows={3}
-                      value={userQuestion}
-                      onChange={(e) => setUserQuestion(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 resize-none"
-                      placeholder="متن سوال خود را وارد کنید..."
-                    />
+                  <div className="space-y-3">
+                    {questions.map((question, index) => (
+                        <div key={index} className="flex gap-2">
+                            <input 
+                                type="text"
+                                value={question}
+                                onChange={(e) => handleQuestionChange(index, e.target.value)}
+                                className="flex-1 bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 text-sm"
+                                placeholder={`سوال ${index + 1}...`}
+                            />
+                            {questions.length > 1 && (
+                                <button 
+                                    type="button"
+                                    onClick={() => removeQuestionField(index)}
+                                    className="p-3 text-red-400 bg-red-900/20 hover:bg-red-900/40 rounded-xl transition"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+
+                    <button
+                        type="button"
+                        onClick={addQuestionField}
+                        className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2"
+                    >
+                        <Plus size={16} />
+                        افزودن سوال دیگر
+                    </button>
                   </div>
               </div>
           )}

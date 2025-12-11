@@ -1,24 +1,33 @@
+// src/components/PaymentProofModal.tsx
 "use client";
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { Loader2, X, Smartphone, Send, DollarSign as MoneyIcon, CreditCard, Copy } from 'lucide-react';
+import { Loader2, X, Smartphone, Send, DollarSign as MoneyIcon, CreditCard, Copy, Plus, Trash2 } from 'lucide-react';
 import ImageUploader from './ImageUploader'; 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface PaymentProofModalProps {
-    isOpen: boolean; onClose: () => void; eventId: string; eventPrice: number; onRegistrationSuccess: () => void;
+    isOpen: boolean; 
+    onClose: () => void; 
+    eventId: string; 
+    eventPrice: number; 
+    onRegistrationSuccess: () => void;
+    hasQuestions?: boolean; // اضافه شد
 }
 
-export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice, onRegistrationSuccess }: PaymentProofModalProps) {
+export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice, onRegistrationSuccess, hasQuestions = false }: PaymentProofModalProps) {
     if (!isOpen) return null;
 
     const [loading, setLoading] = useState(false);
     const [receiptUrl, setReceiptUrl] = useState('');
     const [mobile, setMobile] = useState('');
     const [telegram, setTelegram] = useState('');
+    
+    // استیت سوالات
+    const [questions, setQuestions] = useState<string[]>(['']);
 
     const cardNumber = "6219861847387114";
     const cardOwner = "ملیکا باقری";
@@ -26,6 +35,22 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
     const copyToClipboard = () => {
         navigator.clipboard.writeText(cardNumber);
         toast.success("شماره کارت کپی شد!");
+    };
+
+    // توابع مدیریت سوالات
+    const handleQuestionChange = (index: number, value: string) => {
+        const newQuestions = [...questions];
+        newQuestions[index] = value;
+        setQuestions(newQuestions);
+    };
+
+    const addQuestionField = () => {
+        setQuestions([...questions, '']);
+    };
+
+    const removeQuestionField = (index: number) => {
+        const newQuestions = questions.filter((_, i) => i !== index);
+        setQuestions(newQuestions);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +63,7 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
             return;
         }
 
+        const validQuestions = questions.filter(q => q.trim().length > 0);
         const token = localStorage.getItem('token');
         if (!token) { toast.error('لطفا وارد شوید.'); setLoading(false); return; }
 
@@ -46,7 +72,8 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                 pricePaid: eventPrice,
                 receiptImage: receiptUrl,
                 mobile: mobile,
-                telegram: telegram 
+                telegram: telegram,
+                questions: validQuestions // ارسال سوالات
             };
 
             await axios.post(`${API_URL}/events/${eventId}/register`, payload, {
@@ -55,8 +82,7 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
 
             toast.success("اطلاعات پرداخت ثبت شد. منتظر تأیید ادمین باشید.");
             await onRegistrationSuccess(); 
-            onClose(); 
-
+            // onClose توسط پرنت صدا زده می‌شود اما اینجا هم برای اطمینان صدا می‌زنیم اگر نیاز بود، ولی بهتر است پرنت هندل کند
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'خطا در ثبت اطلاعات.');
         } finally {
@@ -135,6 +161,45 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                             />
                         </div>
                     </div>
+
+                    {/* ✅ بخش سوالات چندگانه */}
+                    {hasQuestions && (
+                        <div className="space-y-3 pt-4 border-t border-white/10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-yellow-400 text-sm font-bold">سوال از مهمان برنامه</span>
+                            </div>
+                            
+                            {questions.map((question, index) => (
+                                <div key={index} className="flex gap-2">
+                                    <input 
+                                        type="text"
+                                        value={question}
+                                        onChange={(e) => handleQuestionChange(index, e.target.value)}
+                                        className="flex-1 bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 text-sm"
+                                        placeholder={`سوال ${index + 1}...`}
+                                    />
+                                    {questions.length > 1 && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => removeQuestionField(index)}
+                                            className="p-3 text-red-400 bg-red-900/20 hover:bg-red-900/40 rounded-xl transition"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={addQuestionField}
+                                className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2"
+                            >
+                                <Plus size={16} />
+                                افزودن سوال دیگر
+                            </button>
+                        </div>
+                    )}
 
                     <button type="submit" disabled={loading} className="w-full rounded-lg bg-green-600 py-3 font-bold text-white hover:bg-green-700 disabled:opacity-50 transition shadow-lg shadow-green-900/20">
                         {loading ? <Loader2 className="animate-spin inline-block"/> : 'ثبت اطلاعات و ارسال رسید'}

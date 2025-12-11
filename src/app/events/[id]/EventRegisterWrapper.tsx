@@ -1,7 +1,7 @@
 // src/app/events/[id]/EventRegisterWrapper.tsx
 "use client";
 
-import { useState, useCallback, useEffect } from "react"; // 👈 useEffect اضافه شد
+import { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import RegisterButton from "../../../components/RegisterButton";
@@ -40,7 +40,6 @@ export default function EventRegisterWrapper({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // آپدیت کردن استیت‌ها با داده تازه
       setUserRegistration(res.data.data.registration || null);
       setRegisteredCount(res.data.data.registeredCount);
     } catch (error) {
@@ -48,26 +47,21 @@ export default function EventRegisterWrapper({
     }
   }, [event._id]);
 
-  // ✅ اضافه شده: محض لود شدن کامپوننت، وضعیت دقیق را چک کن
   useEffect(() => {
     fetchRegistrationStatus();
   }, [fetchRegistrationStatus]);
 
-  // هندلر مشترک موفقیت
   const handleSuccess = async () => {
     toast.success("ثبت‌نام شما با موفقیت انجام شد ✅");
     setIsPaymentModalOpen(false);
     setIsFreeModalOpen(false);
-    // بلافاصله وضعیت جدید را از سرور می‌گیریم تا دکمه آپدیت شود
     await fetchRegistrationStatus();
   };
 
-  // هندلر کلیک روی دکمه ثبت‌نام
   const handleRegisterClick = () => {
-    // ✅ چک کردن اینکه آیا کاربر قبلا ثبت‌نام کرده؟
     if (userRegistration) {
       toast.success("شما قبلاً در این رویداد ثبت‌نام کرده‌اید.");
-      return; // اگر ثبت‌نام کرده، هیچ کاری نکن
+      return;
     }
 
     if (!localStorage.getItem("token")) {
@@ -101,7 +95,7 @@ export default function EventRegisterWrapper({
         }
       );
 
-      await handleSuccess(); // ✅ منتظر ماندن برای آپدیت وضعیت
+      await handleSuccess();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "خطا در ثبت‌نام.");
     } finally {
@@ -133,30 +127,30 @@ export default function EventRegisterWrapper({
         price={event.price}
         capacity={event.capacity}
         registeredCount={registeredCount}
-        userRegistration={userRegistration} // این پراپ باعث می‌شود دکمه ظاهر "ثبت‌نام شده" بگیرد
+        userRegistration={userRegistration}
         onRegisterSuccess={handleSuccess}
         handleRegister={handleRegisterClick}
         isLoading={isLoading}
       />
 
-      {event.isFree && (
-        <FreeRegisterModal
-          isOpen={isFreeModalOpen}
-          onClose={() => setIsFreeModalOpen(false)}
-          onSubmit={submitFreeRegistration}
-          isLoading={isLoading}
-        />
-      )}
+      {/* مودال ثبت‌نام رایگان */}
+      <FreeRegisterModal
+        isOpen={isFreeModalOpen}
+        onClose={() => setIsFreeModalOpen(false)}
+        onSubmit={submitFreeRegistration}
+        isLoading={isLoading}
+        hasQuestions={event.hasQuestions}
+      />
 
-      {event.isFree && (
-        <FreeRegisterModal
-          isOpen={isFreeModalOpen}
-          onClose={() => setIsFreeModalOpen(false)}
-          onSubmit={submitFreeRegistration}
-          isLoading={isLoading}
-          hasQuestions={event.hasQuestions}
-        />
-      )}
+      {/* مودال ثبت‌نام غیررایگان (پرداخت) */}
+      <PaymentProofModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        eventId={event._id}
+        eventPrice={event.price}
+        onRegistrationSuccess={handleSuccess}
+        hasQuestions={event.hasQuestions}
+      />
     </>
   );
 }
