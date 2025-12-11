@@ -62,7 +62,8 @@ export default async function EventDetailPage({ params }: Props) {
       </Link>
 
       {/* کاور رویداد */}
-      <div className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-8 shadow-2xl border border-white/10 bg-slate-800">
+      {/* <div className="relative w-full h-72 md:h-[500px] rounded-2xl overflow-hidden mb-8 shadow-2xl border border-white/10 bg-slate-800"> */}
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-8 shadow-2xl border border-white/10 bg-slate-800">
         <img 
             src={event.thumbnail || "https://picsum.photos/800/600"} 
             alt={event.title} 
