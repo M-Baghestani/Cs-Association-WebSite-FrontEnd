@@ -1,7 +1,7 @@
-// src/components/PaymentProofModal.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // ✅ اضافه شد
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Loader2, X, Smartphone, Send, DollarSign as MoneyIcon, CreditCard, Copy, Plus, Trash2 } from 'lucide-react';
@@ -15,19 +15,22 @@ interface PaymentProofModalProps {
     eventId: string; 
     eventPrice: number; 
     onRegistrationSuccess: () => void;
-    hasQuestions?: boolean; // اضافه شد
+    hasQuestions?: boolean; 
 }
 
 export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice, onRegistrationSuccess, hasQuestions = false }: PaymentProofModalProps) {
-    if (!isOpen) return null;
-
     const [loading, setLoading] = useState(false);
     const [receiptUrl, setReceiptUrl] = useState('');
     const [mobile, setMobile] = useState('');
     const [telegram, setTelegram] = useState('');
-    
-    // استیت سوالات
     const [questions, setQuestions] = useState<string[]>(['']);
+    const [mounted, setMounted] = useState(false);
+
+    // ✅ اطمینان از اینکه کد فقط سمت کلاینت اجرا می‌شود
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
     const cardNumber = "6219861847387114";
     const cardOwner = "ملیکا باقری";
@@ -37,21 +40,14 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
         toast.success("شماره کارت کپی شد!");
     };
 
-    // توابع مدیریت سوالات
     const handleQuestionChange = (index: number, value: string) => {
         const newQuestions = [...questions];
         newQuestions[index] = value;
         setQuestions(newQuestions);
     };
 
-    const addQuestionField = () => {
-        setQuestions([...questions, '']);
-    };
-
-    const removeQuestionField = (index: number) => {
-        const newQuestions = questions.filter((_, i) => i !== index);
-        setQuestions(newQuestions);
-    };
+    const addQuestionField = () => setQuestions([...questions, '']);
+    const removeQuestionField = (index: number) => setQuestions(questions.filter((_, i) => i !== index));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,7 +69,7 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                 receiptImage: receiptUrl,
                 mobile: mobile,
                 telegram: telegram,
-                questions: validQuestions // ارسال سوالات
+                questions: validQuestions 
             };
 
             await axios.post(`${API_URL}/events/${eventId}/register`, payload, {
@@ -82,7 +78,7 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
 
             toast.success("اطلاعات پرداخت ثبت شد. منتظر تأیید ادمین باشید.");
             await onRegistrationSuccess(); 
-            // onClose توسط پرنت صدا زده می‌شود اما اینجا هم برای اطمینان صدا می‌زنیم اگر نیاز بود، ولی بهتر است پرنت هندل کند
+            onClose();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'خطا در ثبت اطلاعات.');
         } finally {
@@ -90,8 +86,11 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+    if (!isOpen || !mounted) return null;
+
+    // ✅ استفاده از Portal برای رندر مستقیم در body
+    return createPortal(
+        <div className="fixed inset-0 z-[99999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
                 
                 <div className="p-5 border-b border-white/10 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
@@ -103,7 +102,6 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                 </div>
                 
                 <form onSubmit={handleSubmit} className="p-5 space-y-5">
-                    
                     {/* اطلاعات پرداخت */}
                     <div className="bg-blue-900/20 p-4 rounded-xl border border-blue-600/50 text-white text-sm space-y-3">
                         <div className="flex justify-between items-center border-b border-blue-500/30 pb-2">
@@ -128,10 +126,8 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                         </div>
                     </div>
 
-                    {/* آپلود رسید */}
                     <ImageUploader onUpload={setReceiptUrl} label="تصویر رسید پرداخت" defaultImage={receiptUrl} />
 
-                    {/* ورودی شماره تماس */}
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">شماره تماس <span className="text-red-500">*</span></label>
                         <div className="relative">
@@ -147,7 +143,6 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                         </div>
                     </div>
 
-                    {/* ورودی تلگرام */}
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">آیدی تلگرام (اختیاری)</label>
                         <div className="relative">
@@ -162,13 +157,11 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                         </div>
                     </div>
 
-                    {/* ✅ بخش سوالات چندگانه */}
                     {hasQuestions && (
                         <div className="space-y-3 pt-4 border-t border-white/10">
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="text-yellow-400 text-sm font-bold">سوال از مهمان برنامه</span>
                             </div>
-                            
                             {questions.map((question, index) => (
                                 <div key={index} className="flex gap-2">
                                     <input 
@@ -189,14 +182,8 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                                     )}
                                 </div>
                             ))}
-
-                            <button
-                                type="button"
-                                onClick={addQuestionField}
-                                className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2"
-                            >
-                                <Plus size={16} />
-                                افزودن سوال دیگر
+                            <button type="button" onClick={addQuestionField} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2">
+                                <Plus size={16} /> افزودن سوال دیگر
                             </button>
                         </div>
                     )}
@@ -206,6 +193,7 @@ export default function PaymentProofModal({ isOpen, onClose, eventId, eventPrice
                     </button>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

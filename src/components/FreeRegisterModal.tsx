@@ -1,8 +1,8 @@
-// src/components/FreeRegisterModal.tsx
 "use client";
 
 import { X, Loader2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom"; // ✅
 
 interface FreeRegisterModalProps {
   isOpen: boolean;
@@ -14,44 +14,36 @@ interface FreeRegisterModalProps {
 
 export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading, hasQuestions = false }: FreeRegisterModalProps) {
   const [telegram, setTelegram] = useState("");
-  // تغییر به آرایه برای سوالات چندگانه
   const [questions, setQuestions] = useState<string[]>(['']);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
-  // توابع مدیریت سوالات
+  if (!isOpen || !mounted) return null;
+
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[index] = value;
     setQuestions(newQuestions);
   };
 
-  const addQuestionField = () => {
-    setQuestions([...questions, '']);
-  };
-
-  const removeQuestionField = (index: number) => {
-    const newQuestions = questions.filter((_, i) => i !== index);
-    setQuestions(newQuestions);
-  };
+  const addQuestionField = () => setQuestions([...questions, '']);
+  const removeQuestionField = (index: number) => setQuestions(questions.filter((_, i) => i !== index));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // فیلتر کردن سوالات خالی
     const validQuestions = hasQuestions ? questions.filter(q => q.trim().length > 0) : [];
-    
-    onSubmit({ 
-        telegram, 
-        questions: validQuestions
-    });
+    onSubmit({ telegram, questions: validQuestions });
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-md bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
+      <div className="relative w-full max-w-md bg-slate-900 rounded-2xl border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh] z-10">
         <div className="flex items-center justify-between p-4 border-b border-white/10 bg-slate-800/50 sticky top-0 z-10">
           <h3 className="font-bold text-white">تکمیل ثبت‌نام</h3>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-white transition">
@@ -72,7 +64,6 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
             />
           </div>
 
-          {/* ✅ بخش سوالات چندگانه */}
           {hasQuestions && (
               <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
                   <div className="flex items-center gap-2">
@@ -102,13 +93,8 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
                         </div>
                     ))}
 
-                    <button
-                        type="button"
-                        onClick={addQuestionField}
-                        className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2"
-                    >
-                        <Plus size={16} />
-                        افزودن سوال دیگر
+                    <button type="button" onClick={addQuestionField} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2">
+                        <Plus size={16} /> افزودن سوال دیگر
                     </button>
                   </div>
               </div>
@@ -124,6 +110,7 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body // ✅ اتصال مستقیم به body
   );
 }
