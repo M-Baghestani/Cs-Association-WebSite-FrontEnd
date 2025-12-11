@@ -112,7 +112,7 @@ export default function HomeClientContent() {
                 
                 <div className="mt-auto pt-4">
                 <Link 
-                    href={`/events/${event.slug || event._id}`} 
+                    href={`/events/${event._id}`} 
                     className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600"
                 >
                     مشاهده جزئیات

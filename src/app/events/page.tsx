@@ -1,118 +1,94 @@
-// src/app/events/page.tsx
-import { Suspense } from 'react';
-import { Search, AlertCircle, CalendarX } from 'lucide-react';
-import EventCard from '../../components/EventCard';
-import CountdownTimer from '../../components/Event/CountdownTimer';
-import { Metadata } from "next";
-import fetchEvents from "../../utils/fetchEvents";
+import Link from 'next/link';
+import Image from 'next/image';
+import { Calendar, MapPin, Users, ArrowRight } from 'lucide-react';
+import { toShamsiDate } from '../../utils/date';
 
-export const metadata: Metadata = {
-  title: 'رویدادها، کارگاه‌ها و مسابقات انجمن علمی کامپیوتر خوارزمی',
-  description: 'لیست کامل رویدادهای پیش‌رو و برگزار شده شامل کارگاه‌های آموزشی، وبینارها، مسابقات برنامه‌نویسی و همایش‌های علمی.',
-  keywords: ['رویدادها', 'کارگاه', 'مسابقه برنامه نویسی', 'وبینار', 'دانشگاه خوارزمی', 'انجمن علمی'],
-};
+// جلوگیری از کش شدن برای دیدن تغییرات لحظه‌ای
+export const dynamic = 'force-dynamic';
 
-interface EventData {
-  _id: string;
-  title: string;
-  date: string;
-  location: string;
-  registeredCount: number;
-  capacity: number;
-  thumbnail?: string;
-  registrationStatus?: 'SCHEDULED' | 'OPEN' | 'CLOSED';
-  registrationOpensAt?: string;
-}
-
-async function getAllEvents(): Promise<{ data: EventData[], error: boolean }> {
-  const { events, error } = await fetchEvents();
-  return { data: events, error };
+async function getEvents() {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    // اضافه کردن پارامتر زمان برای جلوگیری از کش
+    const res = await fetch(`${API_URL}/events?t=${Date.now()}`, { 
+      cache: 'no-store' 
+    });
+    
+    if (!res.ok) return [];
+    
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
 }
 
 export default async function EventsPage() {
-  const { data: allEvents, error: isServerDown } = await getAllEvents();
-
-  const openEvents = allEvents.filter(e => e.registrationStatus === 'OPEN' || !e.registrationStatus);
-  const scheduledEvents = allEvents.filter(e => e.registrationStatus === 'SCHEDULED');
+  const events = await getEvents();
 
   return (
-    <div className="min-h-screen pt-15 pb-20 container mx-auto px-4 max-w-7xl text-white">
-
-      {/* HEADER */}
-      <div className="text-center py-10 mb-10 border-b border-white/10">
-        <h1 className="text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-600">
-          رویدادهای انجمن
-        </h1>
-        <p className="text-gray-400 max-w-2xl mx-auto">
-          جدیدترین کارگاه‌ها، دوره‌ها و برنامه‌های انجمن علمی را از دست ندهید.
-        </p>
-      </div>
-      {/* رویدادهای فعال */}
-      <h2 className="text-3xl font-bold text-white mb-8 border-b border-green-500/50 pb-3 flex items-center gap-3">
-        رویدادهای فعال <span className="text-green-400 text-base font-medium">({openEvents.length})</span>
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-        {openEvents.length === 0 ? (
-          <div className="col-span-3 text-center py-16 bg-slate-900/50 border border-dashed border-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-500">
-            {isServerDown ? (
-              <>
-                <AlertCircle className="h-12 w-12 text-red-500 mb-3 opacity-80" />
-                <p className="text-red-200 font-bold">ارتباط با سرور برقرار نشد.</p>
-              </>
-            ) : (
-              <>
-                <CalendarX className="h-12 w-12 text-gray-600 mb-3" />
-                <p>در حال حاضر رویداد فعالی وجود ندارد.</p>
-              </>
-            )}
-          </div>
-        ) : (
-          <Suspense fallback={<div>در حال بارگذاری...</div>}>
-            {openEvents.map((event) => (
-              <EventCard
-                    slug={event._id} key={event._id}
-                    id={event._id}
-                    {...event}
-                    registrationStatus={event.registrationStatus || 'OPEN'}
-                    registrationOpensAt={event.registrationOpensAt || ''}              />
-            ))}
-          </Suspense>
-        )}
+    <div className="min-h-screen px-4 pt-24 pb-20 container mx-auto max-w-7xl text-white">
+      <div className="mb-12 text-center">
+        <h1 className="text-4xl font-bold mb-4">رویدادهای انجمن</h1>
+        <p className="text-gray-400">تازه‌ترین کارگاه‌ها، سمینارها و مسابقات</p>
       </div>
 
-      {/* رویدادهای آینده */}
-      {!isServerDown && scheduledEvents.length > 0 && (
-        <>
-          <h2 className="text-3xl font-bold text-white mb-8 border-b border-yellow-500/50 pb-3 flex items-center gap-3">
-            رویدادهای آینده <span className="text-yellow-400 text-base font-medium">({scheduledEvents.length})</span>
-          </h2>
+      {events.length === 0 ? (
+        <div className="text-center py-20 bg-slate-900/50 rounded-3xl border border-white/5">
+          <p className="text-gray-500">در حال حاضر رویدادی وجود ندارد.</p>
+        </div>
+      ) : (
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event: any) => (
+            <div key={event._id} className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl">
+              
+              {/* تصویر */}
+              <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
+                <Image
+                  src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=Event"}
+                  alt={event.title}
+                  fill
+                  className="object-cover transition duration-700 group-hover:scale-110"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Suspense fallback={<div>در حال بارگذاری...</div>}>
-              {scheduledEvents.map((event) => (
-                <div key={event._id} className="relative group">
-
-                  <div className="opacity-60 pointer-events-none select-none filter grayscale-50">
-                    <EventCard
-                              slug={event._id} id={event._id}
-                              {...event}
-                              registrationStatus="SCHEDULED"
-                              registrationOpensAt={event.registrationOpensAt || ''}                    />
+              {/* بدنه کارت */}
+              <div className="flex flex-1 flex-col p-5">
+                <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400 line-clamp-2">
+                  {event.title}
+                </h3>
+                
+                <div className="space-y-3 text-sm text-gray-400 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <span>{toShamsiDate(event.date)}</span>
                   </div>
-
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 rounded-2xl backdrop-blur-sm p-4 border border-yellow-500/30 transition group-hover:bg-slate-950/70 z-10">
-                    <CountdownTimer
-                      opensAt={event.registrationOpensAt || ''}
-                      eventTitle={event.title}
-                    />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-blue-500" />
+                    <span className="truncate">{event.location}</span>
                   </div>
-
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-500" />
+                    <span>{event.registeredCount} / {event.capacity} نفر</span>
+                  </div>
                 </div>
-              ))}
-            </Suspense>
-          </div>
-        </>
+
+                <div className="mt-auto pt-4 border-t border-white/5">
+                  <Link 
+                    // ✅ نکته کلیدی: لینک فقط با ID
+                    href={`/events/${event._id}`} 
+                    className="flex items-center justify-center gap-2 w-full rounded-xl bg-blue-600/10 py-3 text-sm font-bold text-blue-400 transition hover:bg-blue-600 hover:text-white"
+                  >
+                    مشاهده جزئیات <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
