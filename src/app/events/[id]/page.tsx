@@ -69,11 +69,11 @@ export default async function EventDetailPage({ params }: Props) {
             alt={event.title} 
             className="w-full h-full object-cover" 
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
       </div>
 
       {/* عنوان */}
-      <h1 className="text-3xl md:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+      <h1 className="text-3xl md:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">
           {event.title}
       </h1>
 

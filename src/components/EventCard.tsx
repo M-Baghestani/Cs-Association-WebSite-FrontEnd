@@ -17,73 +17,65 @@ interface EventProps {
 }
 
 export default function EventCard({ 
-  id, // 👈 اضافه شد
-  title, 
-  date, 
-  location, 
-  capacity, 
-  registeredCount, 
-  slug, // (می‌توانید اگر دیگر استفاده نمی‌شود حذف کنید، اما فعلاً باشد بهتر است)
-  thumbnail,
-  registrationStatus,
+  id, title, date, location, capacity, registeredCount, thumbnail, registrationStatus
 }: EventProps) {
   
   const formattedDate = toShamsiDate(date);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 h-full">
       
-      {/* === بخش تصویر === */}
-      <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
+      {/* تصویر */}
+      <div className="relative h-44 sm:h-48 w-full bg-slate-800 overflow-hidden">
         <img
           src={thumbnail || "https://picsum.photos/600/400"} 
-          alt={`کاور رویداد: ${title}`} 
+          alt={`کاور ${title}`} 
           className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
           loading="lazy" 
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60" />
       </div>
       
-      {/* === بخش محتوا === */}
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400">
+      {/* محتوا */}
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <h3 className="mb-3 text-lg sm:text-xl font-bold text-white leading-tight transition group-hover:text-blue-400 line-clamp-2 min-h-14">
           {title}
         </h3>
         
-        <div className="space-y-2 text-sm text-gray-400">
+        <div className="space-y-2.5 text-xs sm:text-sm text-gray-400 mb-4">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-blue-500" />
+            <Calendar className="h-4 w-4 text-blue-500 shrink-0" />
             <span>{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-500" />
-            <span>{location}</span>
+            <MapPin className="h-4 w-4 text-blue-500 shrink-0" />
+            <span className="truncate">{location}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
+            <Users className="h-4 w-4 text-blue-500 shrink-0" />
             <span>{registeredCount} / {capacity} نفر</span>
           </div>
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto">
           {registrationStatus === 'OPEN' && (
             <Link 
-              href={`/events/${id}`}  // 👈 تغییر از slug به id
-              className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600"
+              href={`/events/${id}`} 
+              className="flex items-center justify-center w-full rounded-xl bg-white/5 py-3 text-sm font-bold text-white transition hover:bg-blue-600 active:scale-95"
             >
               ثبت نام / جزئیات
             </Link>
           )}
 
           {registrationStatus === 'SCHEDULED' && (
-            <div className="block w-full rounded-lg bg-yellow-900/20 py-2 text-center text-sm font-medium text-yellow-400">
+            <div className="flex items-center justify-center w-full rounded-xl bg-yellow-900/20 py-3 text-sm font-bold text-yellow-400 border border-yellow-500/10">
               به زودی باز می‌شود
             </div>
           )}
           
            {registrationStatus === 'CLOSED' && (
-            <div className="block w-full rounded-lg bg-red-900/20 py-2 text-center text-sm font-medium text-red-400">
-              ظرفیت تکمیل / بسته شده
+            <div className="flex items-center justify-center w-full rounded-xl bg-red-900/20 py-3 text-sm font-bold text-red-400 border border-red-500/10">
+              بسته شد
             </div>
           )}
         </div>

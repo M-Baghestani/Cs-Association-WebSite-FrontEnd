@@ -1,59 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  overflow-x: hidden;
-}
-/* ... سایر استایل‌ها ... */
-
-
-@import "tailwindcss";
-
-:root {
   --foreground-rgb: 255, 255, 255;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  overflow-x: hidden;
+  overflow-x: hidden; /* جلوگیری از اسکرول افقی */
+  -webkit-tap-highlight-color: transparent; /* حذف هایلایت آبی در موبایل */
 }
 
+/* اسکرول بار زیبا و باریک برای موبایل */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: #0f172a;
 }
 ::-webkit-scrollbar-thumb {
   background: #334155;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
-input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(100%);
-    cursor: pointer;
-}
-
-/* 💡 FIX: Imports for react-pdf styles updated to use the standard CJS/UMD path to resolve module not found error. */
+/* تنظیمات PDF */
 @import "react-pdf/dist/Page/AnnotationLayer.css";
 @import "react-pdf/dist/Page/TextLayer.css";

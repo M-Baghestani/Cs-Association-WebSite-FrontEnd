@@ -40,7 +40,7 @@ export default async function EventsPage() {
 
       {/* HEADER */}
       <div className="text-center py-10 mb-10 border-b border-white/10">
-        <h1 className="text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+        <h1 className="text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-600">
           رویدادهای انجمن
         </h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
@@ -93,7 +93,7 @@ export default async function EventsPage() {
               {scheduledEvents.map((event) => (
                 <div key={event._id} className="relative group">
 
-                  <div className="opacity-60 pointer-events-none select-none filter grayscale-[50%]">
+                  <div className="opacity-60 pointer-events-none select-none filter grayscale-50">
                     <EventCard
                               slug={event._id} id={event._id}
                               {...event}

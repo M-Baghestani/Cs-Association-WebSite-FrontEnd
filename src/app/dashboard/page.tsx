@@ -14,8 +14,6 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Mail,
-  Calendar,
   LogOut,
   Send,
   Lock,
@@ -23,14 +21,14 @@ import {
   FileText,
   Edit2,
   X,
-  Image,
+  Calendar,
 } from "lucide-react";
-import ImageUploader from "../../components/ImageUploader";
-import { toShamsiDate, checkIsBirthday } from "../../utils/date";
+import ImageUploader from "../../components/ImageUploader"; //
+import { toShamsiDate, checkIsBirthday } from "../../utils/date"; //
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// 🚨 تابع کمکی برای ساخت آدرس مطلق
+// تابع کمکی برای ساخت آدرس فایل‌ها
 const getReceiptUrl = (path: string | null | undefined) => {
   if (!path) return "#";
   if (path.startsWith("http")) return path;
@@ -63,6 +61,7 @@ export default function DashboardPage() {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [ticketToClose, setTicketToClose] = useState<string | null>(null);
 
+  // بررسی تولد
   const isTodayBirthday = checkIsBirthday(profile.dateOfBirth);
 
   useEffect(() => {
@@ -74,46 +73,67 @@ export default function DashboardPage() {
     fetchDashboardData(token);
   }, [router]);
 
-  // ✅ اصلاح شده: دریافت اطلاعات کاربر از سرور به جای LocalStorage
   const fetchDashboardData = async (token: string) => {
     setLoading(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
 
       // 1. دریافت رویدادها
-      const eventsRes = await axios.get(`${API_URL}/events/my-registrations`, {
-        headers,
-      });
-      setEvents(eventsRes.data.data);
+      try {
+        const eventsRes = await axios.get(`${API_URL}/events/my-registrations`, {
+          headers,
+        });
+        setEvents(eventsRes.data.data);
+      } catch (err) {
+        console.error("Error fetching events", err);
+      }
 
       // 2. دریافت تیکت‌ها
-      const msgRes = await axios.get(`${API_URL}/contact/my`, { headers });
-      setTickets(msgRes.data.data);
-
-      // 3. ✅ دریافت اطلاعات پروفایل از سرور (بخش جدید)
-      // نکته: اگر روت بک‌اند شما /auth/me است، خط زیر را تغییر دهید
-      const userRes = await axios.get(`${API_URL}/auth/profile`, { headers });
-
-      const userData = userRes.data.data || userRes.data.user; // بسته به ساختار پاسخ بک‌اند
-
-      if (userData) {
-        // آپدیت کردن LocalStorage برای هماهنگی
-        localStorage.setItem("user", JSON.stringify(userData));
-
-        setProfile((prev) => ({
-          ...prev,
-          name: userData.name || "",
-          email: userData.email || "",
-          phoneNumber: userData.phoneNumber || "",
-          profileImage: userData.profileImage || "",
-          dateOfBirth: userData.dateOfBirth
-            ? new Date(userData.dateOfBirth).toISOString().split("T")[0]
-            : "",
-        }));
+      try {
+        const msgRes = await axios.get(`${API_URL}/contact/my`, { headers });
+        setTickets(msgRes.data.data);
+      } catch (err) {
+        console.error("Error fetching tickets", err);
       }
+
+      // 3. دریافت پروفایل (از سرور برای اطمینان)
+      try {
+        const userRes = await axios.get(`${API_URL}/auth/profile`, { headers });
+        const userData = userRes.data.data || userRes.data.user; // بسته به بک‌اند
+
+        if (userData) {
+          localStorage.setItem("user", JSON.stringify(userData)); // آپدیت لوکال
+          
+          setProfile((prev) => ({
+            ...prev,
+            name: userData.name || "",
+            email: userData.email || "",
+            phoneNumber: userData.phoneNumber || "",
+            profileImage: userData.profileImage || "",
+            // تبدیل تاریخ برای اینپوت date
+            dateOfBirth: userData.dateOfBirth
+              ? new Date(userData.dateOfBirth).toISOString().split("T")[0]
+              : "",
+          }));
+        }
+      } catch (err) {
+        console.warn("Profile fetch failed, using local storage");
+        // فال‌بک به لوکال استوریج
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+            const u = JSON.parse(userStr);
+            setProfile(prev => ({
+                ...prev,
+                name: u.name || "",
+                email: u.email || "",
+                phoneNumber: u.phoneNumber || "",
+                profileImage: u.profileImage || "",
+                dateOfBirth: u.dateOfBirth ? new Date(u.dateOfBirth).toISOString().split("T")[0] : ""
+            }));
+        }
+      }
+
     } catch (error: any) {
-      console.error(error);
-      // اگر توکن نامعتبر بود، لاگ‌اوت کن
       if (error.response?.status === 401) {
         handleLogout();
       } else {
@@ -203,7 +223,7 @@ export default function DashboardPage() {
       const res = await axios.put(`${API_URL}/auth/profile`, profile, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      
       const savedUser = res.data.user || res.data.data;
       localStorage.setItem("user", JSON.stringify(savedUser));
 
@@ -238,79 +258,82 @@ export default function DashboardPage() {
     );
 
   return (
-    <div className="min-h-screen px-4 pt-28 pb-20 container mx-auto max-w-6xl flex flex-col lg:flex-row gap-8">
-      {/* SIDEBAR */}
-      <aside className="lg:w-1/4">
-        <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 sticky top-28 shadow-xl">
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
-            {profile.profileImage ? (
-              <img
-                src={profile.profileImage}
-                alt="Profile"
-                className="w-14 h-14 rounded-full object-cover border-2 border-blue-500"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                {profile.name ? (
-                  profile.name.charAt(0).toUpperCase()
+    <div className="min-h-screen px-4 pt-24 sm:pt-28 pb-20 container mx-auto max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-8">
+      
+      {/* SIDEBAR - نسخه ریسپانسیو شده */}
+      <aside className="lg:w-1/4 w-full">
+        <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 sm:p-6 sticky top-24 sm:top-28 shadow-xl">
+          
+          {/* پروفایل کاربر */}
+          <div className="flex lg:flex-col items-center gap-4 mb-6 pb-6 border-b border-white/10">
+            <div className="shrink-0">
+                {profile.profileImage ? (
+                <img
+                    src={profile.profileImage}
+                    alt="Profile"
+                    className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-2 border-blue-500"
+                />
                 ) : (
-                  <User className="w-6 h-6" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl sm:text-3xl font-bold text-white shadow-lg">
+                    {profile.name ? profile.name.charAt(0).toUpperCase() : <User/>}
+                </div>
                 )}
-              </div>
-            )}
-            <div className="overflow-hidden">
-              <h2 className="font-bold text-white truncate">
-                {profile.name || "کاربر"}
-              </h2>
-              <p className="text-xs text-gray-400 truncate">{profile.email}</p>
+            </div>
+            
+            <div className="flex-1 lg:text-center min-w-0">
+              <h2 className="font-bold text-white text-lg truncate">{profile.name || "کاربر"}</h2>
+              <p className="text-xs text-gray-400 truncate dir-ltr">{profile.email}</p>
+              {/* دکمه خروج فقط در موبایل جلوی اسم */}
+              <button onClick={handleLogout} className="lg:hidden mt-2 text-xs text-red-400 border border-red-500/20 px-3 py-1 rounded-full hover:bg-red-500/10 transition">
+                  خروج
+              </button>
             </div>
           </div>
 
-          <nav className="space-y-2">
+          {/* منوی ناوبری - در موبایل اسکرول افقی می‌شود */}
+          <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
             <button
               onClick={() => setActiveTab("events")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`flex-1 min-w-[120px] lg:min-w-0 flex items-center justify-center lg:justify-start gap-2 px-4 py-3 rounded-xl transition-all text-sm font-medium whitespace-nowrap ${
                 activeTab === "events"
                   ? "bg-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:bg-white/5"
+                  : "bg-slate-800 lg:bg-transparent text-gray-400 hover:bg-white/5"
               }`}
             >
-              <Ticket className="h-5 w-5" /> رویدادهای من
+              <Ticket className="h-4 w-4" /> رویدادها
             </button>
             <button
               onClick={() => setActiveTab("messages")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`flex-1 min-w-[120px] lg:min-w-0 flex items-center justify-center lg:justify-start gap-2 px-4 py-3 rounded-xl transition-all text-sm font-medium whitespace-nowrap ${
                 activeTab === "messages"
                   ? "bg-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:bg-white/5"
+                  : "bg-slate-800 lg:bg-transparent text-gray-400 hover:bg-white/5"
               }`}
             >
-              <MessageSquare className="h-5 w-5" /> پیام‌ها
+              <MessageSquare className="h-4 w-4" /> پیام‌ها
             </button>
             <button
               onClick={() => setActiveTab("profile")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`flex-1 min-w-[120px] lg:min-w-0 flex items-center justify-center lg:justify-start gap-2 px-4 py-3 rounded-xl transition-all text-sm font-medium whitespace-nowrap ${
                 activeTab === "profile"
                   ? "bg-blue-600 text-white shadow-lg"
-                  : "text-gray-400 hover:bg-white/5"
+                  : "bg-slate-800 lg:bg-transparent text-gray-400 hover:bg-white/5"
               }`}
             >
-              <User className="h-5 w-5" /> ویرایش پروفایل
+              <User className="h-4 w-4" /> پروفایل
             </button>
-            <div className="pt-4 mt-4 border-t border-white/10">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition"
-              >
+            
+            <div className="hidden lg:block pt-4 mt-4 border-t border-white/10">
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition">
                 <LogOut className="h-5 w-5" /> خروج
               </button>
             </div>
           </nav>
         </div>
       </aside>
-
+      
       {/* CONTENT */}
-      <main className="lg:w-3/4">
+      <main className="lg:w-3/4 w-full min-h-[500px]">
         {isTodayBirthday && (
           <div className="w-full bg-pink-900/40 border border-pink-500/50 p-4 rounded-xl text-white text-center mb-6 animate-pulse">
             <h3 className="font-bold text-xl text-pink-300">
@@ -339,7 +362,8 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+              // در موبایل تک ستونه، در دسکتاپ دو ستونه
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {events.map((reg: any) => (
                   <div
                     key={reg._id}
@@ -355,7 +379,7 @@ export default function DashboardPage() {
                       }`}
                     />
                     <h3 className="font-bold text-white mb-2 text-lg">
-                      {reg.event?.title}
+                      {reg.event?.title || "رویداد حذف شده"}
                     </h3>
                     <div className="text-sm text-gray-400 mb-4 space-y-2 bg-black/20 p-3 rounded-xl">
                       <p>📅 تاریخ: {toShamsiDate(reg.event?.date)}</p>
@@ -404,13 +428,15 @@ export default function DashboardPage() {
                           </>
                         )}
                       </span>
-                      <Link
-                        // ✅ اصلاح لینک: اگر اسلاگ نبود، از آیدی استفاده کن
-                        href={`/events/${reg.event?.slug || reg.event?._id}`}
-                        className="text-blue-400 hover:text-white text-sm transition"
-                      >
-                        مشاهده جزئیات &rarr;
-                      </Link>
+                      {reg.event && (
+                        <Link
+                          // ✅ اصلاح لینک: استفاده از ID اگر Slug نبود
+                          href={`/events/${reg.event.slug || reg.event._id}`}
+                          className="text-blue-400 hover:text-white text-sm transition"
+                        >
+                          مشاهده جزئیات &rarr;
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -632,6 +658,7 @@ export default function DashboardPage() {
                     onChange={(e) =>
                       setProfile({ ...profile, dateOfBirth: e.target.value })
                     }
+                    // کلاس ltr-text برای نمایش صحیح در موبایل
                     className="w-full bg-slate-950 border border-gray-700 rounded-xl py-3 pr-10 pl-4 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ltr-text"
                   />
                 </div>
@@ -684,6 +711,7 @@ export default function DashboardPage() {
         )}
       </main>
 
+      {/* مودال بستن تیکت */}
       {showCloseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200">

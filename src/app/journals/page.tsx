@@ -69,7 +69,7 @@ export default function JournalsPage() {
               key={journal._id}
               className="group bg-slate-900 border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/50 transition shadow-lg flex flex-col"
             >
-              <div className="relative aspect-[3/4] w-full overflow-hidden">
+              <div className="relative aspect-3/4 w-full overflow-hidden">
                 <img
                   src={journal.coverImage}
                   alt={journal.title}
@@ -78,7 +78,7 @@ export default function JournalsPage() {
                 />
               </div>
 
-              <div className="p-4 text-center border-t border-white/5 flex flex-col flex-grow">
+              <div className="p-4 text-center border-t border-white/5 flex flex-col grow">
                 <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition">
                   {journal.title}
                 </h3>

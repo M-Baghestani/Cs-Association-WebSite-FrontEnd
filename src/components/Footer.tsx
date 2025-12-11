@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="lg:col-span-1">
           <Link href="/" className="flex items-center gap-2 text-primary font-bold text-xl mb-4">
             <Code2 className="w-6 h-6 text-cyan-400" />
-            <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 CS Association
             </span>
           </Link>

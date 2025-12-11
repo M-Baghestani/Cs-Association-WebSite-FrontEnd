@@ -76,7 +76,7 @@ export default function BlogClientContent() {
                   className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60" />
               </div>
               
               <div className="p-6">

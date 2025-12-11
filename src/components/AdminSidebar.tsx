@@ -48,7 +48,7 @@ const AdminSidebar = () => {
         پنل مدیریت
       </h2>
 
-      <nav className="flex-grow space-y-4">
+      <nav className="grow space-y-4">
         {/* لینک‌های اصلی */}
         <div className="space-y-2">
             {navItems.map((item) => {
