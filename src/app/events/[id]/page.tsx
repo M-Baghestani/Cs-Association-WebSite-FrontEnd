@@ -10,7 +10,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 async function getEventData(id: string) {
   try {
-    // درخواست مستقیم به بک‌اند با ID
     const res = await fetch(`${API_URL}/events/${id}`, { 
       cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }
@@ -26,13 +25,12 @@ async function getEventData(id: string) {
 }
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>; // ✅ در نکست ۱۵ باید Promise باشد
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
-  // در نکست 15 (که شاید استفاده کنید) پارامترها پرامیس هستند، اما اینجا مستقیم می‌خوانیم
-  // اگر ارور تایپ داد، آن را await کنید: const { id } = await params;
-  const { id } = params;
+  // ✅ اصلاح حیاتی برای Next.js 15: باید await شود
+  const { id } = await params;
 
   if (!id) return notFound();
 
@@ -45,7 +43,6 @@ export default async function EventDetailPage({ params }: PageProps) {
       
       {/* کاور رویداد */}
       <div className="relative w-full h-64 md:h-[450px] rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/10 bg-slate-900">
-        {/* استفاده از img معمولی برای جلوگیری از مشکلات دامنه عکس */}
         <img
           src={event.thumbnail || "https://placehold.co/1200x600/1e293b/ffffff?text=Event+Cover"}
           alt={event.title}
@@ -54,6 +51,14 @@ export default async function EventDetailPage({ params }: PageProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         
         <div className="absolute bottom-0 right-0 p-6 md:p-10 w-full">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${event.isFree ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
+              {event.isFree ? 'رایگان' : `${event.price?.toLocaleString()} تومان`}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/10 text-white text-xs backdrop-blur-sm">
+              ظرفیت: {event.capacity} نفر
+            </span>
+          </div>
           <h1 className="text-3xl md:text-5xl font-black text-white mb-2 leading-tight">
             {event.title}
           </h1>
