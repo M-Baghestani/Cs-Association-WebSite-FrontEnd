@@ -152,7 +152,7 @@ export default function RegisterPage() {
                 <input
                     type="email"
                     name="email"
-                    placeholder="ایمیل دانشگاهی"
+                    placeholder="ایمیل"
                     value={formData.email}
                     onChange={handleChange}
                     required
