@@ -19,7 +19,7 @@ export default async function TeamPage() {
   const members = await getMembers();
 
   return (
-    <div className="min-h-screen px-4 pt-10 pb-20">
+    <div className="min-h-screen px-4 pt-15 pb-20">
       <div className="container mx-auto">
         
         {/* Header */}

@@ -36,7 +36,7 @@ export default async function EventsPage() {
   const scheduledEvents = allEvents.filter(e => e.registrationStatus === 'SCHEDULED');
 
   return (
-    <div className="min-h-screen pt-10 pb-20 container mx-auto px-4 max-w-7xl text-white">
+    <div className="min-h-screen pt-15 pb-20 container mx-auto px-4 max-w-7xl text-white">
 
       {/* HEADER */}
       <div className="text-center py-10 mb-10 border-b border-white/10">
