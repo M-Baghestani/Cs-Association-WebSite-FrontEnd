@@ -1,7 +1,21 @@
+// src/types/event.ts
+
+export type RegistrationStatusType = 
+    | 'VERIFIED' 
+    | 'PENDING' 
+    | 'FAILED' 
+    | 'PAID' 
+    | 'REGISTERED'
+    | 'APPROVED'   
+    | 'REJECTED'   
+    | 'RECEIPT_PENDING'; 
+
 export interface RegistrationStatus {
-  status: 'VERIFIED' | 'PENDING' | 'FAILED' | 'PAID' | 'REGISTERED';
+  // استفاده از تایپ جدید
+  status: RegistrationStatusType;
   mobile?: string;
   telegram?: string;
+  _id: string; // افزودن فیلد ID برای استفاده در Optimistic Update
 }
 
 export interface EventType {
@@ -17,6 +31,7 @@ export interface EventType {
   thumbnail?: string;
   registrationStatus?: 'SCHEDULED' | 'OPEN' | 'CLOSED';
   registrationOpensAt?: string;
-  userRegistration?: any; 
+  // استفاده از تایپ جدید و امکان null بودن
+  userRegistration?: RegistrationStatus | null; 
   hasQuestions?: boolean;
 }
