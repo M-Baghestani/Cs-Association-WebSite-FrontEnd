@@ -1,5 +1,3 @@
-// src/types/event.ts
-
 export interface RegistrationStatus {
   status: 'VERIFIED' | 'PENDING' | 'FAILED' | 'PAID' | 'REGISTERED';
   mobile?: string;
@@ -7,17 +5,19 @@ export interface RegistrationStatus {
 }
 
 export interface EventType {
-  _id: string; 
+  _id: string;
   title: string;
   slug: string;
   description: string;
-  date: string; 
+  date: string;
   location: string;
   capacity: number;
   registeredCount: number;
   isFree: boolean;
-  price: number; 
+  price: number;
   thumbnail?: string;
-  registrationStatus: 'SCHEDULED' | 'OPEN' | 'CLOSED';
-  userRegistration?: RegistrationStatus | null;
+  registrationStatus?: 'SCHEDULED' | 'OPEN' | 'CLOSED';
+  registrationOpensAt?: string;
+  userRegistration?: any; 
+  hasQuestions?: boolean;
 }

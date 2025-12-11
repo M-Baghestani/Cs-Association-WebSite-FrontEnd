@@ -93,7 +93,7 @@ export default function DashboardPage() {
       // 3. ✅ دریافت اطلاعات پروفایل از سرور (بخش جدید)
       // نکته: اگر روت بک‌اند شما /auth/me است، خط زیر را تغییر دهید
       const userRes = await axios.get(`${API_URL}/auth/profile`, { headers });
-      
+
       const userData = userRes.data.data || userRes.data.user; // بسته به ساختار پاسخ بک‌اند
 
       if (userData) {
@@ -111,7 +111,6 @@ export default function DashboardPage() {
             : "",
         }));
       }
-
     } catch (error: any) {
       console.error(error);
       // اگر توکن نامعتبر بود، لاگ‌اوت کن
@@ -204,7 +203,7 @@ export default function DashboardPage() {
       const res = await axios.put(`${API_URL}/auth/profile`, profile, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const savedUser = res.data.user || res.data.data;
       localStorage.setItem("user", JSON.stringify(savedUser));
 
@@ -252,11 +251,17 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                {profile.name ? profile.name.charAt(0).toUpperCase() : <User className="w-6 h-6"/>}
+                {profile.name ? (
+                  profile.name.charAt(0).toUpperCase()
+                ) : (
+                  <User className="w-6 h-6" />
+                )}
               </div>
             )}
             <div className="overflow-hidden">
-              <h2 className="font-bold text-white truncate">{profile.name || "کاربر"}</h2>
+              <h2 className="font-bold text-white truncate">
+                {profile.name || "کاربر"}
+              </h2>
               <p className="text-xs text-gray-400 truncate">{profile.email}</p>
             </div>
           </div>
@@ -303,7 +308,7 @@ export default function DashboardPage() {
           </nav>
         </div>
       </aside>
-      
+
       {/* CONTENT */}
       <main className="lg:w-3/4">
         {isTodayBirthday && (
@@ -400,7 +405,8 @@ export default function DashboardPage() {
                         )}
                       </span>
                       <Link
-                        href={`/events/${reg.event?.slug}`}
+                        // ✅ اصلاح لینک: اگر اسلاگ نبود، از آیدی استفاده کن
+                        href={`/events/${reg.event?.slug || reg.event?._id}`}
                         className="text-blue-400 hover:text-white text-sm transition"
                       >
                         مشاهده جزئیات &rarr;

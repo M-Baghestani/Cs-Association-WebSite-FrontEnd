@@ -4,14 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Loader2, Calendar, DollarSign, Save, Clock } from "lucide-react";
+import { Loader2, Calendar, DollarSign, Save, Clock, HelpCircle } from "lucide-react";
 import ImageUploader from "../../../components/ImageUploader";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const combineDateTime = (date: string, time: string) => {
     if (!date) return new Date().toISOString();
-    // ترکیب تاریخ و ساعت برای ساخت فرمت ISO
     return time ? new Date(`${date}T${time}:00`).toISOString() : new Date(date).toISOString();
 };
 
@@ -21,9 +20,11 @@ export default function CreateEventPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [status, setStatus] = useState('SCHEDULED');
   
-  // مقادیر اولیه تاریخ و ساعت
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('10:00');
+
+  // ✅ استیت برای سوالات
+  const [hasQuestions, setHasQuestions] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -77,8 +78,9 @@ export default function CreateEventPage() {
             price: formData.isFree ? 0 : Number(formData.price),
             thumbnail: imageUrl,
             registrationStatus: status,
-            // ترکیب تاریخ و ساعت انتخابی
-            date: combineDateTime(startDate, startTime)
+            date: combineDateTime(startDate, startTime),
+            // ✅ ارسال فیلد جدید
+            hasQuestions: hasQuestions
         };
 
         await axios.post(`${API_URL}/events`, payload, {
@@ -102,7 +104,6 @@ export default function CreateEventPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 p-8 rounded-2xl border border-white/10 shadow-2xl">
-        {/* عنوان و slug */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-2 block text-sm text-gray-400">عنوان رویداد</label>
@@ -114,41 +115,26 @@ export default function CreateEventPage() {
           </div>
         </div>
 
-        {/* توضیحات */}
         <div>
           <label className="mb-2 block text-sm text-gray-400">توضیحات کامل</label>
           <textarea name="description" value={formData.description} onChange={handleChange} rows={6} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none" placeholder="جزئیات رویداد..." required />
         </div>
 
-        {/* ✅ بخش جدید: تاریخ و ساعت برگزاری */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-800/50 p-4 rounded-xl border border-white/5">
             <div>
                 <label className="mb-2 flex items-center gap-2 text-sm text-gray-400">
                     <Calendar className="h-4 w-4"/> تاریخ برگزاری
                 </label>
-                <input 
-                    type="date" 
-                    value={startDate} 
-                    onChange={(e) => setStartDate(e.target.value)} 
-                    className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" 
-                    required 
-                />
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" required />
             </div>
             <div>
                 <label className="mb-2 flex items-center gap-2 text-sm text-gray-400">
                     <Clock className="h-4 w-4"/> ساعت شروع
                 </label>
-                <input 
-                    type="time" 
-                    value={startTime} 
-                    onChange={(e) => setStartTime(e.target.value)} 
-                    className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" 
-                    required 
-                />
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none ltr-text" required />
             </div>
         </div>
 
-        {/* وضعیت رویداد */}
         <div>
           <label className="mb-2 block text-sm text-gray-400">وضعیت رویداد</label>
           <select value={status} onChange={e => setStatus(e.target.value)} className="w-full bg-slate-950 border p-3 rounded-xl text-white focus:border-blue-500 outline-none">
@@ -158,7 +144,21 @@ export default function CreateEventPage() {
           </select>
         </div>
 
-        {/* مکان و ظرفیت */}
+        {/* ✅ بخش تنظیمات سوالات */}
+        <div className="bg-slate-800/30 p-4 rounded-xl border border-white/5 flex items-center gap-3">
+            <input 
+                type="checkbox" 
+                id="hasQuestions" 
+                checked={hasQuestions} 
+                onChange={(e) => setHasQuestions(e.target.checked)} 
+                className="w-5 h-5 accent-blue-600 cursor-pointer"
+            />
+            <label htmlFor="hasQuestions" className="cursor-pointer select-none flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-yellow-400" />
+                <span>آیا فرم سوالات اختصاصی (مهمان) فعال باشد؟</span>
+            </label>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-2 block text-sm text-gray-400">مکان برگزاری</label>
@@ -170,7 +170,6 @@ export default function CreateEventPage() {
           </div>
         </div>
 
-        {/* قیمت و رایگان */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <button type="button" onClick={handleToggleFree} className={`py-3 rounded-xl w-full ${formData.isFree ? 'bg-green-600' : 'bg-red-600'} text-white`}>
             <DollarSign className="inline-block mr-2"/> {formData.isFree ? 'رایگان' : 'پولی'}
@@ -180,7 +179,6 @@ export default function CreateEventPage() {
           )}
         </div>
 
-        {/* آپلود تصویر */}
         <ImageUploader onUpload={setImageUrl} defaultImage={imageUrl} label="آپلود تصویر کاور رویداد" />
 
         <button type="submit" disabled={loading} className="w-full bg-blue-600 py-3 rounded-xl text-white flex justify-center items-center gap-2">
