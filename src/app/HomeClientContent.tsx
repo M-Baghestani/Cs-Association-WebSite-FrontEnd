@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,24 +6,15 @@ import { ArrowLeft, Cpu, Sparkles, Calendar, MapPin, Users } from "lucide-react"
 import { motion } from "framer-motion";
 import Image from "next/image";
 import axios from "axios"; 
-import { Metadata } from "next"; // 🚨 FIX: ایمپورت Metadata
-
-// 🚨 FIX: سئوی اختصاصی صفحه اصلی (Static Metadata)
-export const metadata: Metadata = {
-  title: 'انجمن علمی علوم کامپیوتر دانشگاه خوارزمی | صفحه اصلی',
-  description: 'وبسایت رسمی انجمن علمی علوم کامپیوتر دانشگاه خوارزمی. آخرین رویدادها، وبلاگ‌های تخصصی، و آشنایی با اعضای فعال انجمن.',
-  keywords: ['صفحه اصلی', 'انجمن علمی', 'علوم کامپیوتر', 'دانشگاه خوارزمی', 'رویدادها', 'وبلاگ'],
-};
-
+import CountdownTimer from "../components/Event/CountdownTimer"; // ✅ ایمپورت تایمر
+import { toShamsiDate } from "../utils/date"; // ✅ ایمپورت صحیح تابع تاریخ
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-export default function Home() {
+export default function HomeClientContent() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // 🚨 FIX: از toShamsiDate استفاده کنید
-  const { toShamsiDate } = require("../utils/date"); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,8 +22,11 @@ export default function Home() {
 
     async function fetchEvents() {
       try {
+        // استفاده از ISR یا کش در اینجا سمت کلاینت تاثیری ندارد چون axios است
+        // اما چون محدود به 3 آیتم است، بار زیادی ندارد
         const res = await axios.get(`${API_URL}/events`);
         if (res.data.success) {
+          // فقط ۳ رویداد آخر را نمایش بده
           setEvents(res.data.data.slice(0, 3));
         }
       } catch (error) {
@@ -45,66 +38,91 @@ export default function Home() {
     fetchEvents();
   }, []);
 
-  // کامپوننت کارت رویداد (برای استفاده داخلی در صفحه اصلی)
-  const HomeEventCard = ({ event, index }: { event: any, index: number }) => (
-    <motion.div
-      key={event._id}
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
-    >
-      {/* 🚨 FIX: تنظیم ارتفاع ثابت برای قاب عکس */}
-      <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
-        <Image
-          src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
-          alt={event.title}
-          fill
-          className="object-cover transition duration-700 group-hover:scale-110"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
-      </div>
+  // کامپوننت کارت رویداد اختصاصی صفحه اصلی
+  const HomeEventCard = ({ event, index }: { event: any, index: number }) => {
+    const isScheduled = event.registrationStatus === 'SCHEDULED';
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400">
-          {event.title}
-        </h3>
-        <div className="space-y-2 text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-blue-500" />
-            <span>{toShamsiDate(event.date)}</span> {/* 🚨 FIX: شمسی‌سازی */}
+    return (
+      <motion.div
+        key={event._id}
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
+      >
+        
+        {/* ✅ بخش جدید: اگر زمان‌بندی شده است، تایمر را روی کارت بنداز */}
+        {isScheduled && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 text-center border border-yellow-500/20">
+             <CountdownTimer 
+                opensAt={event.registrationOpensAt} 
+                eventTitle={event.title} 
+             />
+             <div className="mt-6 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm font-bold">
+                ⏳ ثبت‌نام به زودی آغاز می‌شود
+             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-500" />
-            <span>{event.location}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
-            <span>{event.registeredCount} / {event.capacity} نفر</span>
-          </div>
-        </div>
-        <div className="mt-auto pt-4">
-          <Link href={`/events/${event.slug}`} className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600">
-            مشاهده جزئیات
-          </Link>
-        </div>
-      </div>
-    </motion.div>
-  );
+        )}
 
+        {/* محتوای اصلی کارت (اگر زمان‌بندی شده باشد، زیر لایه بالا قرار می‌گیرد) */}
+        <div className={`flex flex-col h-full ${isScheduled ? 'opacity-40 pointer-events-none filter grayscale-[50%]' : ''}`}>
+            
+            {/* قاب عکس */}
+            <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
+                <Image
+                src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
+                alt={event.title}
+                fill
+                className="object-cover transition duration-700 group-hover:scale-110"
+                unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+            </div>
+
+            {/* بدنه کارت */}
+            <div className="flex flex-1 flex-col p-5">
+                <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400">
+                {event.title}
+                </h3>
+                <div className="space-y-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <span>{toShamsiDate(event.date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-blue-500" />
+                    <span>{event.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-500" />
+                    <span>{event.registeredCount} / {event.capacity} نفر</span>
+                </div>
+                </div>
+                
+                <div className="mt-auto pt-4">
+                <Link 
+                    // ✅ اصلاح لینک: استفاده از ID اگر اسلاگ نبود
+                    href={`/events/${event.slug || event._id}`} 
+                    className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600"
+                >
+                    مشاهده جزئیات
+                </Link>
+                </div>
+            </div>
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="relative text-white overflow-x-hidden">
-      
       <div className="flex flex-col gap-20 pb-20">
         
         {/* HERO SECTION */}
         <section className="container max-w-7xl mx-auto px-6">
           <div className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-100px)] lg:min-h-[calc(100vh-180px)]">
             
-            {/* Badge */}
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -115,7 +133,6 @@ export default function Home() {
               <span>به وب‌سایت رسمی انجمن علوم کامپیوتر دانشگاه خوارزمی خوش آمدید</span>
             </motion.div>
 
-            {/* Title */}
             <h1 className="text-5xl font-black tracking-tight md:text-7xl lg:text-9xl mb-6 leading-tight">
               <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
                 انجمن علمی
@@ -126,12 +143,10 @@ export default function Home() {
               </span>
             </h1>
 
-            {/* Typewriter (Placeholder) */}
             <div className="h-10 text-xl md:text-2xl text-blue-300 font-bold mt-4">
                <p>برگزارکننده رویدادهای تخصصی</p>
             </div>
             
-            {/* Description */}
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -142,7 +157,6 @@ export default function Home() {
               فضایی پویا برای رشد علمی و فنی دانشجویان فراهم کنیم.
             </motion.p>
             
-            {/* Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -201,56 +215,4 @@ export default function Home() {
       </div>
     </div>
   );
-}
-
-// کامپوننت کارت رویداد صفحه اصلی
-function HomeEventCard({ event, index }: { event: any, index: number }) {
-    // 🚨 FIX: از toShamsiDate استفاده کنید
-    const { toShamsiDate } = require("../utils/date"); 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
-        >
-        
-        <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
-            <Image
-                src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
-                alt={event.title}
-                fill 
-                className="object-cover transition duration-700 group-hover:scale-110"
-                unoptimized
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
-        </div>
-
-        <div className="flex flex-1 flex-col p-5">
-            <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400">
-            {event.title}
-            </h3>
-            <div className="space-y-2 text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-500" />
-                <span>{toShamsiDate(event.date)}</span> {/* 🚨 FIX: شمسی‌سازی */}
-            </div>
-            <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-blue-500" />
-                <span>{event.location}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-500" />
-                <span>{event.registeredCount} / {event.capacity} نفر</span>
-            </div>
-            </div>
-            <div className="mt-auto pt-4">
-            <Link href={`/events/${event.slug}`} className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600">
-                مشاهده جزئیات
-            </Link>
-            </div>
-        </div>
-        </motion.div>
-    );
 }
