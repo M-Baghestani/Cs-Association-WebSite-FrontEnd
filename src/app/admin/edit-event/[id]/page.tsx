@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "../../../../components/ImageUploader";
+import { toLocalInputDate } from "../../../../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -16,9 +17,17 @@ export default function EditEventPage() {
   const [imageUrl, setImageUrl] = useState(""); 
   
   const [formData, setFormData] = useState<any>({
-    title: "", slug: "", description: "", date: "", location: "",
-    capacity: 0, price: 0, isFree: false, thumbnail: "",
-    registrationStatus: 'OPEN', registrationOpensAt: ''
+    title: "", 
+    description: "", 
+    date: "", 
+    location: "",
+    capacity: 0, 
+    price: 0, 
+    isFree: false, 
+    thumbnail: "",
+    registrationStatus: 'OPEN', 
+    registrationOpensAt: '',
+    hasQuestions: false // ✅ اضافه شده
   });
 
   // 1. دریافت اطلاعات فعلی رویداد
@@ -30,12 +39,14 @@ export default function EditEventPage() {
         if (json.success) {
           const d = json.data;
           
-          // فرمت کردن تاریخ‌ها برای input datetime-local
-          // (برش زدن ثانیه و میلی ثانیه برای سازگاری با اینپوت HTML)
-          const dateStr = d.date ? new Date(d.date).toISOString().slice(0, 16) : '';
-          const opensAtStr = d.registrationOpensAt ? new Date(d.registrationOpensAt).toISOString().slice(0, 16) : '';
-
-          setFormData({ ...d, date: dateStr, registrationOpensAt: opensAtStr });
+          // ✅ اصلاح: استفاده از تابع تبدیل برای نمایش ساعت درست در اینپوت
+          setFormData({ 
+            ...d, 
+            date: toLocalInputDate(d.date), 
+            registrationOpensAt: toLocalInputDate(d.registrationOpensAt),
+            hasQuestions: d.hasQuestions || false 
+          });
+          
           setImageUrl(d.thumbnail); // لود عکس قبلی
         }
       } catch (error) {
@@ -53,6 +64,9 @@ export default function EditEventPage() {
     if (name === 'isFree') {
          const checked = (e.target as HTMLInputElement).checked;
          setFormData((prev: any) => ({ ...prev, isFree: checked, price: checked ? 0 : prev.price }));
+    } else if (name === 'hasQuestions') { // ✅ هندلر چک‌باکس سوالات
+         const checked = (e.target as HTMLInputElement).checked;
+         setFormData((prev: any) => ({ ...prev, hasQuestions: checked }));
     } else if (type === 'number') {
          setFormData((prev: any) => ({ ...prev, [name]: Number(value) }));
     } else {
@@ -65,9 +79,16 @@ export default function EditEventPage() {
     setSaving(true);
     const token = localStorage.getItem("token");
 
+    // ✅ تبدیل تاریخ لوکال به ISO استاندارد برای ارسال به سرور
+    // این کار باعث می‌شود ساعت دقیقاً همان چیزی که کاربر انتخاب کرده ذخیره شود
+    const dateISO = formData.date ? new Date(formData.date).toISOString() : "";
+    const opensAtISO = formData.registrationOpensAt ? new Date(formData.registrationOpensAt).toISOString() : null;
+
     const payload = {
         ...formData,
-        thumbnail: imageUrl, // استفاده از عکس جدید (یا قبلی)
+        date: dateISO,
+        registrationOpensAt: opensAtISO,
+        thumbnail: imageUrl,
         price: formData.isFree ? 0 : formData.price,
     };
 
@@ -94,7 +115,11 @@ export default function EditEventPage() {
     }
   };
 
-  if (loading) return <div className="text-center mt-20 text-white">در حال دریافت اطلاعات...</div>;
+  if (loading) return (
+      <div className="flex justify-center items-center h-screen text-white gap-2">
+          <Loader2 className="animate-spin" /> در حال دریافت اطلاعات...
+      </div>
+  );
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-24">
@@ -104,59 +129,141 @@ export default function EditEventPage() {
         
         <ImageUploader 
           onUpload={setImageUrl} 
-          defaultImage={imageUrl} // نمایش عکس فعلی
+          defaultImage={imageUrl} 
           label="تصویر کاور رویداد"
         />
 
-        <div className="grid md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-400 mb-2">عنوان</label><input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
-            <div><label className="block text-sm text-gray-400 mb-2">اسلاگ</label><input name="slug" value={formData.slug} onChange={handleChange} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
+        {/* بخش عنوان - حذف اسلاگ */}
+        <div>
+            <label className="block text-sm text-gray-400 mb-2">عنوان رویداد</label>
+            <input 
+                name="title" 
+                value={formData.title} 
+                onChange={handleChange} 
+                required 
+                className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" 
+            />
         </div>
 
-        <div><label className="block text-sm text-gray-400 mb-2">توضیحات</label><textarea name="description" value={formData.description} onChange={handleChange} rows={4} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
+        <div>
+            <label className="block text-sm text-gray-400 mb-2">توضیحات کامل</label>
+            <textarea 
+                name="description" 
+                value={formData.description} 
+                onChange={handleChange} 
+                rows={4} 
+                required 
+                className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" 
+            />
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-            <div><label className="block text-sm text-gray-400 mb-2">تاریخ</label><input type="datetime-local" name="date" value={formData.date} onChange={handleChange} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
-            <div><label className="block text-sm text-gray-400 mb-2">مکان</label><input name="location" value={formData.location} onChange={handleChange} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
-            <div><label className="block text-sm text-gray-400 mb-2">ظرفیت</label><input type="number" name="capacity" value={formData.capacity} onChange={handleChange} required className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" /></div>
+            <div>
+                <label className="block text-sm text-gray-400 mb-2">تاریخ و ساعت برگزاری</label>
+                <input 
+                    type="datetime-local" 
+                    name="date" 
+                    value={formData.date} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500 ltr-text" 
+                />
+            </div>
+            <div>
+                <label className="block text-sm text-gray-400 mb-2">مکان برگزاری</label>
+                <input 
+                    name="location" 
+                    value={formData.location} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" 
+                />
+            </div>
+            <div>
+                <label className="block text-sm text-gray-400 mb-2">ظرفیت کل</label>
+                <input 
+                    type="number" 
+                    name="capacity" 
+                    value={formData.capacity} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full rounded-lg bg-white/5 p-3 text-white focus:ring-2 focus:ring-green-500" 
+                />
+            </div>
         </div>
 
-        {/* تنظیمات وضعیت ثبت‌نام */}
-        <div className="bg-slate-800/50 p-5 rounded-xl border border-white/5">
-            <h3 className="text-white font-bold mb-4 border-b border-white/10 pb-2">وضعیت ثبت‌نام</h3>
+        {/* تنظیمات پیشرفته */}
+        <div className="bg-slate-800/50 p-5 rounded-xl border border-white/5 space-y-4">
+            <h3 className="text-white font-bold border-b border-white/10 pb-2">تنظیمات ثبت‌نام</h3>
+            
             <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm text-gray-400 mb-2">وضعیت</label>
+                    <label className="block text-sm text-gray-400 mb-2">وضعیت ثبت‌نام</label>
                     <select name="registrationStatus" value={formData.registrationStatus} onChange={handleChange} className="w-full rounded-lg bg-slate-950 border border-gray-700 p-3 text-white focus:ring-2 focus:ring-blue-500">
-                        <option value="OPEN">باز</option>
-                        <option value="SCHEDULED">زمان‌بندی شده</option>
-                        <option value="CLOSED">بسته شده</option>
+                        <option value="OPEN">باز (در حال ثبت‌نام)</option>
+                        <option value="SCHEDULED">زمان‌بندی شده (به زودی)</option>
+                        <option value="CLOSED">بسته شده (پایان)</option>
                     </select>
                 </div>
                 {formData.registrationStatus === 'SCHEDULED' && (
-                    <div>
-                        <label className="block text-sm text-yellow-400 mb-2">تاریخ بازگشایی</label>
-                        <input type="datetime-local" name="registrationOpensAt" value={formData.registrationOpensAt} onChange={handleChange} className="w-full rounded-lg bg-slate-950 border border-yellow-600/50 p-3 text-white focus:ring-2 focus:ring-yellow-500" />
+                    <div className="animate-fadeIn">
+                        <label className="block text-sm text-yellow-400 mb-2">تاریخ بازگشایی خودکار</label>
+                        <input 
+                            type="datetime-local" 
+                            name="registrationOpensAt" 
+                            value={formData.registrationOpensAt} 
+                            onChange={handleChange} 
+                            className="w-full rounded-lg bg-slate-950 border border-yellow-600/50 p-3 text-white focus:ring-2 focus:ring-yellow-500 ltr-text" 
+                        />
                     </div>
                 )}
+            </div>
+
+            {/* ✅ چک‌باکس سوالات */}
+            <div className="flex items-center gap-3 bg-slate-900/50 p-3 rounded-lg border border-white/5">
+                <input 
+                    type="checkbox" 
+                    name="hasQuestions" 
+                    id="hasQuestions"
+                    checked={formData.hasQuestions} 
+                    onChange={handleChange} 
+                    className="h-5 w-5 rounded border-gray-600 bg-gray-700 accent-blue-500" 
+                />
+                <label htmlFor="hasQuestions" className="text-sm font-medium text-gray-300 select-none cursor-pointer">
+                    امکان پرسش سوال از مهمان برای کاربران فعال شود
+                </label>
             </div>
         </div>
 
         {/* قیمت */}
         <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-            <div className="flex items-center gap-3">
-                <input type="checkbox" name="isFree" checked={formData.isFree} onChange={handleChange} className="h-4 w-4 rounded border-gray-600 bg-gray-700" />
-                <label className="text-sm font-medium text-gray-300">این رویداد رایگان است.</label>
+            <div className="flex items-center gap-3 mb-4">
+                <input 
+                    type="checkbox" 
+                    name="isFree" 
+                    id="isFree"
+                    checked={formData.isFree} 
+                    onChange={handleChange} 
+                    className="h-5 w-5 rounded border-gray-600 bg-gray-700 accent-green-500" 
+                />
+                <label htmlFor="isFree" className="text-sm font-medium text-gray-300 select-none cursor-pointer">این رویداد رایگان است.</label>
             </div>
+            
             {!formData.isFree && (
-                <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">قیمت (تومان)</label>
-                    <input type="number" name="price" value={formData.price} onChange={handleChange} className="block w-full rounded-md border border-gray-700 bg-gray-900 p-3 text-white" />
+                <div className="animate-fadeIn">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">قیمت بلیط (تومان)</label>
+                    <input 
+                        type="number" 
+                        name="price" 
+                        value={formData.price} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-md border border-gray-700 bg-gray-900 p-3 text-white focus:ring-2 focus:ring-green-500" 
+                    />
                 </div>
             )}
         </div>
 
-        <button disabled={saving} type="submit" className="w-full rounded-lg bg-green-600 py-3 font-bold text-white transition hover:bg-green-500 flex justify-center gap-2">
+        <button disabled={saving} type="submit" className="w-full rounded-lg bg-green-600 py-3 font-bold text-white transition hover:bg-green-500 flex justify-center gap-2 shadow-lg shadow-green-900/20">
            {saving ? <Loader2 className="animate-spin"/> : <><Save className="h-5 w-5"/> ذخیره تغییرات</>}
         </button>
       </form>

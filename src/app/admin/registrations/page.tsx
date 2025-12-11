@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Check, X, Search } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -20,8 +20,9 @@ interface Registration {
   status: string;
   mobile: string;
   telegram?: string;
-  questions?: string[]; // ✅ اضافه شده
+  questions?: string[];
   createdAt: string;
+  receiptImage?: string;
 }
 
 export default function RegistrationsPage() {
@@ -42,6 +43,28 @@ export default function RegistrationsPage() {
     }
   };
 
+  // ✅ اضافه شدن تابع تغییر وضعیت
+  const handleStatusChange = async (id: string, newStatus: "APPROVED" | "REJECTED") => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
+    // Optimistic Update: ابتدا در ظاهر تغییر می‌دهیم
+    setRegistrations(prev => prev.map(r => r._id === id ? { ...r, status: newStatus } : r));
+
+    try {
+      await axios.put(
+        `${API_URL}/admin/registrations/${id}/verify`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(newStatus === "APPROVED" ? "تایید شد ✅" : "رد شد ❌");
+    } catch (error) {
+        // Revert if failed
+        fetchRegistrations();
+        toast.error("خطا در تغییر وضعیت");
+    }
+  };
+
   useEffect(() => {
     fetchRegistrations();
   }, []);
@@ -55,19 +78,24 @@ export default function RegistrationsPage() {
 
   return (
     <div className="bg-slate-900 p-6 rounded-2xl border border-white/10">
-      <h2 className="text-2xl font-bold text-white mb-6">مدیریت ثبت‌نام‌ها</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">مدیریت ثبت‌نام‌ها</h2>
+        <button onClick={fetchRegistrations} className="text-sm text-blue-400 hover:text-blue-300">
+            بروزرسانی لیست ↻
+        </button>
+      </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-right text-gray-300">
+      <div className="overflow-x-auto pb-20"> {/* pb-20 برای اسکرول بهتر */}
+        <table className="w-full text-right text-gray-300 border-collapse">
           <thead className="bg-slate-800 text-gray-400 uppercase text-sm">
             <tr>
               <th className="p-4 rounded-tr-xl">دانشجو</th>
               <th className="p-4">رویداد</th>
               <th className="p-4">تماس</th>
-              <th className="p-4">تلگرام</th>
+              <th className="p-4">رسید</th>
+              <th className="p-4">سوالات</th>
               <th className="p-4">وضعیت</th>
-              <th className="p-4">سوالات</th> {/* ✅ ستون جدید */}
-              <th className="p-4 rounded-tl-xl">تاریخ</th>
+              <th className="p-4 text-center rounded-tl-xl">عملیات</th> {/* ✅ ستون عملیات */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
@@ -78,8 +106,30 @@ export default function RegistrationsPage() {
                   <div className="text-xs text-gray-500">{reg.user?.studentId}</div>
                 </td>
                 <td className="p-4 text-blue-300">{reg.event?.title}</td>
-                <td className="p-4 font-mono dir-ltr text-right">{reg.mobile}</td>
-                <td className="p-4 text-blue-400">{reg.telegram || "-"}</td>
+                <td className="p-4">
+                    <div className="text-xs text-gray-400">{reg.mobile}</div>
+                    {reg.telegram && <div className="text-xs text-blue-400 dir-ltr">{reg.telegram}</div>}
+                </td>
+                <td className="p-4">
+                    {reg.receiptImage ? (
+                        <a href={reg.receiptImage} target="_blank" rel="noreferrer" className="text-blue-400 text-xs underline">
+                            مشاهده تصویر
+                        </a>
+                    ) : <span className="text-gray-600 text-xs">ندارد</span>}
+                </td>
+                
+                <td className="p-4 max-w-xs">
+                  {reg.questions && reg.questions.length > 0 ? (
+                    <div className="space-y-1">
+                      {reg.questions.map((q, i) => (
+                        <div key={i} className="text-[10px] bg-slate-700 p-1 rounded text-white border border-slate-600">
+                           ❓ {q}
+                        </div>
+                      ))}
+                    </div>
+                  ) : "-"}
+                </td>
+
                 <td className="p-4">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -97,33 +147,37 @@ export default function RegistrationsPage() {
                       : "در انتظار"}
                   </span>
                 </td>
-                
-                {/* ✅ نمایش سوالات */}
-                <td className="p-4 max-w-xs">
-                  {reg.questions && reg.questions.length > 0 ? (
-                    <div className="space-y-1">
-                      {reg.questions.map((q, i) => (
-                        <div key={i} className="text-xs bg-slate-700 p-1.5 rounded text-white border border-slate-600">
-                           ❓ {q}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-gray-600 text-sm">-</span>
-                  )}
-                </td>
 
-                <td className="p-4 text-sm text-gray-500">
-                  {new Date(reg.createdAt).toLocaleDateString("fa-IR")}
+                {/* ✅ دکمه‌های عملیات */}
+                <td className="p-4">
+                    <div className="flex justify-center gap-2">
+                        {reg.status === 'PENDING' ? (
+                            <>
+                                <button 
+                                    onClick={() => handleStatusChange(reg._id, 'APPROVED')}
+                                    className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg transition"
+                                    title="تایید"
+                                >
+                                    <Check size={18} />
+                                </button>
+                                <button 
+                                    onClick={() => handleStatusChange(reg._id, 'REJECTED')}
+                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition"
+                                    title="رد کردن"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </>
+                        ) : (
+                            <span className="text-gray-600 text-xs">تعیین شده</span>
+                        )}
+                    </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {registrations.length === 0 && (
-        <div className="text-center text-gray-500 py-10">هیچ ثبت‌نامی یافت نشد.</div>
-      )}
     </div>
   );
 }

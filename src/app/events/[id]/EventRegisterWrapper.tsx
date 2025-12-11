@@ -18,43 +18,49 @@ interface EventRegisterWrapperProps {
 export default function EventRegisterWrapper({
   event,
 }: EventRegisterWrapperProps) {
-  const [userRegistration, setUserRegistration] = useState(
-    event.userRegistration || null
-  );
+  // مقدار اولیه را از پراپ می‌گیریم، اما استیت قابل تغییر است
+  const [userRegistration, setUserRegistration] = useState(event.userRegistration || null);
   const [registeredCount, setRegisteredCount] = useState(event.registeredCount);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isFreeModalOpen, setIsFreeModalOpen] = useState(false);
 
-  // تابع دریافت آخرین وضعیت ثبت‌نام از سرور
   const fetchRegistrationStatus = useCallback(async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setUserRegistration(null);
-      return;
-    }
+    if (!token) return;
 
     try {
+      // دریافت وضعیت دقیق از سرور
       const res = await axios.get(`${API_URL}/events/${event._id}/my-status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setUserRegistration(res.data.data.registration || null);
-      setRegisteredCount(res.data.data.registeredCount);
+      
+      const data = res.data.data;
+      if (data && data.registration) {
+          setUserRegistration(data.registration);
+          console.log("Status updated:", data.registration); // برای دیباگ
+      }
+      if (data && typeof data.registeredCount === 'number') {
+          setRegisteredCount(data.registeredCount);
+      }
+      
     } catch (error) {
       console.error("Error fetching status", error);
     }
   }, [event._id]);
 
+  // هنگام لود شدن صفحه یکبار وضعیت را چک کن (شاید کاربر قبلا ثبت‌نام کرده باشد)
   useEffect(() => {
     fetchRegistrationStatus();
   }, [fetchRegistrationStatus]);
 
   const handleSuccess = async () => {
-    toast.success("ثبت‌نام شما با موفقیت انجام شد ✅");
     setIsPaymentModalOpen(false);
     setIsFreeModalOpen(false);
+    toast.success("ثبت‌نام شما با موفقیت انجام شد ✅");
+    
+    // ✅ بلافاصله وضعیت را از سرور می‌گیریم تا دکمه آپدیت شود
     await fetchRegistrationStatus();
   };
 
@@ -95,7 +101,7 @@ export default function EventRegisterWrapper({
         }
       );
 
-      await handleSuccess();
+      await handleSuccess(); // ✅ اینجا منتظر آپدیت می‌مانیم
     } catch (error: any) {
       toast.error(error.response?.data?.message || "خطا در ثبت‌نام.");
     } finally {
@@ -127,13 +133,12 @@ export default function EventRegisterWrapper({
         price={event.price}
         capacity={event.capacity}
         registeredCount={registeredCount}
-        userRegistration={userRegistration}
+        userRegistration={userRegistration} // ✅ ارسال استیت آپدیت شده
         onRegisterSuccess={handleSuccess}
         handleRegister={handleRegisterClick}
         isLoading={isLoading}
       />
 
-      {/* مودال ثبت‌نام رایگان */}
       <FreeRegisterModal
         isOpen={isFreeModalOpen}
         onClose={() => setIsFreeModalOpen(false)}
@@ -142,7 +147,6 @@ export default function EventRegisterWrapper({
         hasQuestions={event.hasQuestions}
       />
 
-      {/* مودال ثبت‌نام غیررایگان (پرداخت) */}
       <PaymentProofModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

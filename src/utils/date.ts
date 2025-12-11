@@ -23,3 +23,12 @@ export const checkIsBirthday = (dobString: string | Date): boolean => {
     // Compare Month and Day (Gregorian)
     return today.getMonth() === dob.getMonth() && today.getDate() === dob.getDate();
 }
+export const toLocalInputDate = (isoString: string | Date | undefined) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  const localDate = new Date(date.getTime() - offsetMs);
+  
+  return localDate.toISOString().slice(0, 16);
+};
