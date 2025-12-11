@@ -4,41 +4,51 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import EventRegisterWrapper from "./EventRegisterWrapper"; 
 import { toShamsiDate } from "../../../utils/date";
 
-// جلوگیری از کش برای دریافت اطلاعات دقیق و لحظه‌ای
 export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// تابع دریافت اطلاعات تک رویداد با ID
 async function getEventData(id: string) {
   try {
-    // ✅ درخواست مستقیم با ID
+    // چاپ آیدی در کنسول برای دیباگ (این را در ترمینال فرانت‌اند چک کنید)
+    console.log("🔍 Fetching Event with ID:", id);
+
+    if (!id || id === 'undefined') return null;
+
     const res = await fetch(`${API_URL}/events/${id}`, { 
       cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }
     });
     
     if (!res.ok) {
-        console.error(`Fetch error: ${res.status}`);
+        console.error(`❌ API Error: ${res.status} for ID: ${id}`);
         return null;
     }
 
     const json = await res.json();
     return json.success ? json.data : null;
   } catch (error) {
-    console.error("Network error fetching event:", error);
+    console.error("❌ Network error:", error);
     return null;
   }
 }
 
+// این اینترفیس هر دو حالت را قبول می‌کند
 interface PageProps {
-  params: { id: string };
+  params: { id?: string; slug?: string };
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
-  const event = await getEventData(params.id);
+  // ✅ اصلاح مهم: دریافت شناسه چه از id و چه از slug
+  const eventId = params.id || params.slug;
 
-  // اگر رویداد پیدا نشد، صفحه 404 نشان بده
+  if (!eventId) {
+    console.error("⚠️ Error: No ID provided in params!", params);
+    notFound();
+  }
+
+  const event = await getEventData(eventId);
+
   if (!event) {
     notFound();
   }
@@ -54,7 +64,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           fill
           className="object-cover"
           priority
-          unoptimized // برای جلوگیری از مشکلات لود عکس در برخی سرورها
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         
@@ -128,7 +138,6 @@ export default async function EventDetailPage({ params }: PageProps) {
             </div>
 
             <div className="mt-8 pt-6 border-t border-white/10">
-              {/* کامپوننت کلاینت برای دکمه ثبت نام */}
               <EventRegisterWrapper event={event} />
             </div>
           </div>
