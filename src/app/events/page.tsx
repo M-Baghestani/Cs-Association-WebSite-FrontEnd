@@ -47,17 +47,6 @@ export default async function EventsPage() {
           جدیدترین کارگاه‌ها، دوره‌ها و برنامه‌های انجمن علمی را از دست ندهید.
         </p>
       </div>
-
-      {/* SEARCH BOX */}
-      <div className="mb-12 max-w-2xl mx-auto relative">
-        <input
-          type="text"
-          placeholder="جستجو در رویدادها..."
-          className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pr-12 pl-4 text-white placeholder-gray-500 focus:border-blue-500 transition"
-        />
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-      </div>
-
       {/* رویدادهای فعال */}
       <h2 className="text-3xl font-bold text-white mb-8 border-b border-green-500/50 pb-3 flex items-center gap-3">
         رویدادهای فعال <span className="text-green-400 text-base font-medium">({openEvents.length})</span>
