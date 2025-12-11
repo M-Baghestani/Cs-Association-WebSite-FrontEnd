@@ -117,9 +117,6 @@ export default async function EventsPage() {
                       opensAt={event.registrationOpensAt || ''}
                       eventTitle={event.title}
                     />
-                    <p className="text-sm text-yellow-200/70 mt-6 font-medium bg-yellow-900/20 px-4 py-1.5 rounded-full border border-yellow-500/20">
-                      ثبت‌نام هنوز باز نشده است
-                    </p>
                   </div>
 
                 </div>
