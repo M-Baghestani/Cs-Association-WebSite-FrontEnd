@@ -44,7 +44,7 @@ export default function Navbar() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.dispatchEvent(new Event("auth-change"));
-    setIsMobileMenuOpen(false); // بستن منو بعد از خروج
+    setIsMobileMenuOpen(false); 
     router.push("/");
   };
 
@@ -108,7 +108,17 @@ export default function Navbar() {
           {user ? (
             <div className="hidden lg:flex items-center gap-3"> 
               <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition">
-                <User className="h-4 w-4" /> داشبورد
+                {/* ✅ تغییر: نمایش عکس پروفایل در دسکتاپ */}
+                {user.profileImage ? (
+                    <img 
+                      src={user.profileImage} 
+                      alt="Profile" 
+                      className="h-6 w-6 rounded-full object-cover border border-white/20"
+                    />
+                ) : (
+                    <User className="h-4 w-4" />
+                )}
+                داشبورد
               </Link>
               {user.role === 'admin' && (
                 <Link href="/admin" className="flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white border border-slate-700 hover:bg-slate-700 transition">
@@ -175,8 +185,17 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <div className="flex items-center gap-3 mb-4 bg-slate-800 p-3 rounded-xl border border-white/5">
-                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                    {user.name?.[0] || <User className="h-5 w-5"/>}
+                                {/* ✅ تغییر: نمایش عکس پروفایل در موبایل */}
+                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md overflow-hidden relative">
+                                    {user.profileImage ? (
+                                        <img 
+                                          src={user.profileImage} 
+                                          alt={user.name} 
+                                          className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        user.name?.[0] || <User className="h-5 w-5"/>
+                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white font-bold truncate">{user.name}</p>
@@ -189,7 +208,6 @@ export default function Navbar() {
                                     <User className="h-4 w-4" /> داشبورد
                                 </Link>
                                 
-                                {/* ✅ دکمه پنل ادمین در موبایل اضافه شد */}
                                 {user.role === 'admin' && (
                                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-purple-900/20 transition">
                                         <LayoutDashboard className="h-4 w-4" /> پنل ادمین
