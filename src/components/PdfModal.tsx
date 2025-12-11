@@ -65,7 +65,7 @@ export default function PdfModal({ isOpen, onClose, fileUrl, title }: PdfModalPr
           {loading && (
              <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-gray-900/50 backdrop-blur-sm text-white">
                 <Loader2 className="animate-spin text-blue-500 w-10 h-10 mb-2" />
-                <span className="text-sm">در حال دریافت فایل از گوگل...</span>
+                <span className="text-sm">درحال دانلود فایل... لطفا صبور باشید.</span>
              </div>
           )}
 
