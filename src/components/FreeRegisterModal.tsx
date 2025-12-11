@@ -8,23 +8,24 @@ interface FreeRegisterModalProps {
   onClose: () => void;
   onSubmit: (data: { telegram: string; questions: string[] }) => void;
   isLoading: boolean;
-  // ✅ پراپ جدید
   hasQuestions?: boolean; 
 }
 
 export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading, hasQuestions = false }: FreeRegisterModalProps) {
   const [telegram, setTelegram] = useState("");
-  // سه سوال پیش‌فرض (یا می‌توانید داینامیک کنید)
-  const [answers, setAnswers] = useState(["", "", ""]);
+  // تغییر به یک رشته متنی برای دریافت سوالات تشریحی
+  const [userQuestion, setUserQuestion] = useState("");
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // اگر سوالات فعال نبود، آرایه خالی بفرست
+    // تبدیل متن سوال به آرایه برای ارسال به بک‌اند
+    const questionsPayload = hasQuestions && userQuestion.trim() ? [userQuestion] : [];
+    
     onSubmit({ 
         telegram, 
-        questions: hasQuestions ? answers : [] 
+        questions: questionsPayload
     });
   };
 
@@ -49,29 +50,28 @@ export default function FreeRegisterModal({ isOpen, onClose, onSubmit, isLoading
               onChange={(e) => setTelegram(e.target.value)}
               className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 ltr-text placeholder:text-gray-600"
               placeholder="@username"
-              required // تلگرام همیشه اجباری باشد
+              required 
             />
           </div>
 
-          {/* ✅ نمایش شرطی سوالات */}
+          {/* ✅ بخش سوالات از مهمان */}
           {hasQuestions && (
               <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
-                  <p className="text-yellow-400 text-sm font-bold">لطفاً به سوالات زیر پاسخ دهید:</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-400 text-sm font-bold">سوال از مهمان برنامه</span>
+                    <span className="text-xs text-gray-500">(اختیاری)</span>
+                  </div>
                   
                   <div>
-                    <label className="block text-sm text-gray-300 mb-2">۱. مقطع و رشته تحصیلی؟</label>
-                    <input 
-                      required
-                      value={answers[0]}
-                      onChange={(e) => {
-                          const newAns = [...answers];
-                          newAns[0] = e.target.value;
-                          setAnswers(newAns);
-                      }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500"
+                    <label className="block text-sm text-gray-300 mb-2">اگر سوالی از مهمان دارید، اینجا بنویسید:</label>
+                    <textarea 
+                      rows={3}
+                      value={userQuestion}
+                      onChange={(e) => setUserQuestion(e.target.value)}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 resize-none"
+                      placeholder="متن سوال خود را وارد کنید..."
                     />
                   </div>
-                  {/* می‌توانید سوالات ۲ و ۳ را هم اینجا بگذارید اگر لازم است */}
               </div>
           )}
 
