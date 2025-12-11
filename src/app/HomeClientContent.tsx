@@ -6,8 +6,8 @@ import { ArrowLeft, Cpu, Sparkles, Calendar, MapPin, Users } from "lucide-react"
 import { motion } from "framer-motion";
 import Image from "next/image";
 import axios from "axios"; 
-import CountdownTimer from "../components/Event/CountdownTimer"; // ✅ ایمپورت تایمر
-import { toShamsiDate } from "../utils/date"; // ✅ ایمپورت صحیح تابع تاریخ
+import CountdownTimer from "../components/Event/CountdownTimer"; 
+import { toShamsiDate } from "../utils/date";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -22,12 +22,14 @@ export default function HomeClientContent() {
 
     async function fetchEvents() {
       try {
-        // استفاده از ISR یا کش در اینجا سمت کلاینت تاثیری ندارد چون axios است
-        // اما چون محدود به 3 آیتم است، بار زیادی ندارد
         const res = await axios.get(`${API_URL}/events`);
         if (res.data.success) {
-          // فقط ۳ رویداد آخر را نمایش بده
-          setEvents(res.data.data.slice(0, 3));
+          // ✅ فیلتر مهم: حذف رویدادهای بسته شده (CLOSED)
+          // فقط رویدادهای OPEN (باز) و SCHEDULED (زمان‌بندی شده) را نگه دار
+          const activeEvents = res.data.data.filter((e: any) => e.registrationStatus !== 'CLOSED');
+          
+          // نمایش ۳ تای اول از لیست فیلتر شده
+          setEvents(activeEvents.slice(0, 3));
         }
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -38,8 +40,8 @@ export default function HomeClientContent() {
     fetchEvents();
   }, []);
 
-  // کامپوننت کارت رویداد اختصاصی صفحه اصلی
   const HomeEventCard = ({ event, index }: { event: any, index: number }) => {
+    // تشخیص وضعیت زمان‌بندی شده
     const isScheduled = event.registrationStatus === 'SCHEDULED';
 
     return (
@@ -52,7 +54,7 @@ export default function HomeClientContent() {
         className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 transition hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10"
       >
         
-        {/* ✅ بخش جدید: اگر زمان‌بندی شده است، تایمر را روی کارت بنداز */}
+        {/* ✅ نمایش تایمر برای رویدادهای زمان‌بندی شده */}
         {isScheduled && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 text-center border border-yellow-500/20">
              <CountdownTimer 
@@ -65,10 +67,8 @@ export default function HomeClientContent() {
           </div>
         )}
 
-        {/* محتوای اصلی کارت (اگر زمان‌بندی شده باشد، زیر لایه بالا قرار می‌گیرد) */}
         <div className={`flex flex-col h-full ${isScheduled ? 'opacity-40 pointer-events-none filter grayscale-50' : ''}`}>
             
-            {/* قاب عکس */}
             <div className="relative h-48 w-full bg-slate-800 overflow-hidden">
                 <Image
                 src={event.thumbnail || "https://placehold.co/600x400/1e293b/ffffff?text=CS+Association"}
@@ -80,7 +80,6 @@ export default function HomeClientContent() {
                 <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-transparent to-transparent opacity-60" />
             </div>
 
-            {/* بدنه کارت */}
             <div className="flex flex-1 flex-col p-5">
                 <h3 className="mb-2 text-xl font-bold text-white transition group-hover:text-blue-400">
                 {event.title}
@@ -102,7 +101,6 @@ export default function HomeClientContent() {
                 
                 <div className="mt-auto pt-4">
                 <Link 
-                    // ✅ اصلاح لینک: استفاده از ID اگر اسلاگ نبود
                     href={`/events/${event.slug || event._id}`} 
                     className="block w-full rounded-lg bg-white/5 py-2 text-center text-sm font-medium text-white transition hover:bg-blue-600"
                 >
@@ -119,21 +117,20 @@ export default function HomeClientContent() {
     <div className="relative text-white overflow-x-hidden">
       <div className="flex flex-col gap-12 sm:gap-20 pb-20">
         
-        {/* HERO SECTION - کاملاً ریسپانسیو شده */}
+        {/* HERO SECTION */}
         <section className="container max-w-7xl mx-auto px-4 sm:px-6">
           <div className="relative flex flex-col items-center justify-center text-center min-h-[calc(100vh-80px)] pt-20 sm:pt-0">
             
-            {/* Badge */}
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
               className="mb-6 flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-blue-400 backdrop-blur-md"
             >
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>انجمن علمی علوم کامپیوتر دانشگاه خوارزمی</span>
             </motion.div>
 
-            {/* Title - سایز متن برای موبایل بهینه شد */}
             <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-4 sm:mb-6 leading-tight">
               <span className="bg-linear-to-b from-white to-white/60 bg-clip-text text-transparent block">
                 انجمن علمی
@@ -147,7 +144,6 @@ export default function HomeClientContent() {
                <p>پیشرو در برگزاری رویدادهای تخصصی</p>
             </div>
             
-            {/* Description - جاستفای متن در موبایل */}
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -158,7 +154,6 @@ export default function HomeClientContent() {
               فضایی پویا برای رشد علمی و فنی دانشجویان فراهم کنیم.
             </motion.p>
             
-            {/* Buttons - چیدمان ستونی در موبایل */}
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -179,7 +174,7 @@ export default function HomeClientContent() {
           </div>
         </section>
 
-        {/* EVENTS SECTION - گرید ریسپانسیو */}
+        {/* EVENTS SECTION */}
         <section className="container max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -200,7 +195,17 @@ export default function HomeClientContent() {
           </motion.div>
 
           <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-             {/* ... (ادامه کد مپ زدن ایونت‌ها مثل قبل) ... */}
+            {loading ? (
+               <div className="col-span-full py-20 text-center text-gray-500">در حال دریافت اطلاعات...</div>
+            ) : events.length > 0 ? (
+              events.map((event: any, index: number) => (
+                <HomeEventCard key={event._id} event={event} index={index} />
+              ))
+            ) : (
+              <div className="col-span-full rounded-2xl border border-dashed border-gray-700 bg-white/5 p-12 text-center text-gray-500">
+                در حال حاضر رویداد فعالی تعریف نشده است.
+              </div>
+            )}
           </div>
         </section>
       </div>

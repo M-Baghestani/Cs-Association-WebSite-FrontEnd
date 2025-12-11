@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -63,16 +63,16 @@ export default function Navbar() {
         
         {/* === LOGO === */}
         <Link href="/" className="group flex items-center gap-2 sm:gap-4 z-20">
-          <div className="relative flex h-10 w-10 sm:h-[50px] sm:w-[50px] items-center justify-center rounded-xl bg-white/5 border border-white/10">
+          <div className="relative flex h-10 w-10 sm:h-[50px] sm:w-[50px] items-center justify-center rounded-xl bg-white/5 border border-white/10 transition group-hover:bg-white/10">
              <Image 
               src="/icon.png"
               alt="Logo" 
               width={80} 
               height={80} 
               className="object-contain p-1 brightness-0 invert" 
+              unoptimized
             />
           </div>
-          {/* فقط در موبایل‌های خیلی کوچک مخفی شود */}
           <div className="flex flex-col">
               <span className="text-sm sm:text-lg font-bold text-white leading-tight">CS Association</span>
               <span className="text-[10px] sm:text-xs text-gray-400">Kharazmi University</span>
@@ -82,7 +82,7 @@ export default function Navbar() {
         {/* === DESKTOP MENU === */}
         <div className="hidden lg:flex items-center gap-1 rounded-full border border-white/5 bg-white/5 p-1 backdrop-blur-md absolute left-1/2 -translate-x-1/2">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
             return (
               <Link 
                 key={link.href} 
@@ -103,7 +103,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* === ACTION BUTTONS === */}
+        {/* === ACTION BUTTONS (DESKTOP) === */}
         <div className="flex items-center gap-3 z-20">
           {user ? (
             <div className="hidden lg:flex items-center gap-3"> 
@@ -111,8 +111,8 @@ export default function Navbar() {
                 <User className="h-4 w-4" /> داشبورد
               </Link>
               {user.role === 'admin' && (
-                <Link href="/admin" className="rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white border border-slate-700 hover:bg-slate-700">
-                   پنل ادمین
+                <Link href="/admin" className="flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white border border-slate-700 hover:bg-slate-700 transition">
+                   <LayoutDashboard className="h-3 w-3" /> پنل ادمین
                 </Link>
               )}
             </div>
@@ -148,7 +148,7 @@ export default function Navbar() {
             >
                 <div className="flex justify-between items-center p-5 border-b border-white/10">
                     <span className="font-bold text-lg text-white">منوی دسترسی</span>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
@@ -160,7 +160,7 @@ export default function Navbar() {
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block w-full p-4 rounded-2xl text-lg font-medium transition ${
-                        pathname === link.href 
+                        pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
                         ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                         : "bg-slate-900 text-gray-300 border border-white/5"
                     }`}
@@ -170,27 +170,39 @@ export default function Navbar() {
                 ))}
                 </div>
                 
+                {/* فوتر منوی موبایل (دکمه‌های کاربری) */}
                 <div className="p-5 border-t border-white/10 space-y-3 bg-slate-900/50">
                     {user ? (
                         <>
-                            <div className="flex items-center gap-3 mb-4 bg-slate-800 p-3 rounded-xl">
-                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-                                    {user.name?.[0] || <User/>}
+                            <div className="flex items-center gap-3 mb-4 bg-slate-800 p-3 rounded-xl border border-white/5">
+                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                    {user.name?.[0] || <User className="h-5 w-5"/>}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white font-bold truncate">{user.name}</p>
-                                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                                    <p className="text-xs text-gray-400 truncate dir-ltr">{user.email}</p>
                                 </div>
                             </div>
-                            <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 bg-slate-800 text-white py-3 rounded-xl font-bold border border-white/10">
-                                <User className="h-5 w-5" /> داشبورد
-                            </Link>
-                            <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 bg-red-500/10 text-red-400 py-3 rounded-xl font-bold border border-red-500/20">
-                                <LogOut className="h-5 w-5" /> خروج
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-bold border border-white/10 transition">
+                                    <User className="h-4 w-4" /> داشبورد
+                                </Link>
+                                
+                                {/* ✅ دکمه پنل ادمین در موبایل اضافه شد */}
+                                {user.role === 'admin' && (
+                                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-purple-900/20 transition">
+                                        <LayoutDashboard className="h-4 w-4" /> پنل ادمین
+                                    </Link>
+                                )}
+                            </div>
+
+                            <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-3 rounded-xl font-bold border border-red-500/20 transition">
+                                <LogOut className="h-4 w-4" /> خروج از حساب
                             </button>
                         </>
                     ) : (
-                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)} className="flex w-full items-center justify-center gap-2 bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-600/20">
+                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)} className="flex w-full items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition">
                             ورود یا ثبت‌نام
                         </Link>
                     )}
