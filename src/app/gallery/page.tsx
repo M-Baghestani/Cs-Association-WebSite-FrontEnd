@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { Calendar, Image as ImageIcon, ArrowLeft, Loader2 } from "lucide-react";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+// اضافه کردن پس‌زمینه گرافیکی سایت
+import NeuralBackground from "../../components/NeuralBackground";
 
-// آدرس API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function GalleryPage() {
@@ -38,39 +38,44 @@ export default function GalleryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pt-24 pb-20 px-4 md:px-8">
-      {/* هدر صفحه */}
-      <div className="max-w-7xl mx-auto mb-16 text-center space-y-4">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"
-        >
-          گزارش‌های تصویری
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-zinc-400 text-lg max-w-2xl mx-auto"
-        >
-          مروری بر خاطرات، رویدادها و فعالیت‌های انجمن علمی علوم کامپیوتر
-        </motion.p>
-      </div>
-
-      {/* لیست کارت‌ها */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {galleries.map((gallery, index) => (
-          <GalleryCard key={gallery._id} gallery={gallery} index={index} />
-        ))}
-      </div>
-
-      {galleries.length === 0 && !loading && (
-        <div className="text-center text-zinc-500 py-20">
-          <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-20" />
-          <p>هنوز هیچ گالری تصویری ثبت نشده است.</p>
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-zinc-950 text-white">
+      {/* ✅ اضافه کردن پس‌زمینه متحرک مشابه سایر صفحات */}
+      <NeuralBackground />
+      
+      <div className="relative z-10 pt-24 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+        {/* هدر صفحه */}
+        <div className="text-center space-y-4 mb-16">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"
+          >
+            گزارش‌های تصویری
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-zinc-400 text-lg max-w-2xl mx-auto"
+          >
+            مروری بر خاطرات، رویدادها و فعالیت‌های انجمن علمی
+          </motion.p>
         </div>
-      )}
+
+        {/* لیست گالری‌ها */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {galleries.map((gallery, index) => (
+            <GalleryCard key={gallery._id} gallery={gallery} index={index} />
+          ))}
+        </div>
+
+        {galleries.length === 0 && !loading && (
+          <div className="text-center text-zinc-500 py-20 bg-zinc-900/50 backdrop-blur-sm rounded-2xl border border-white/5">
+            <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-20" />
+            <p>هنوز هیچ گالری تصویری ثبت نشده است.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -83,9 +88,9 @@ function GalleryCard({ gallery, index }: { gallery: any, index: number }) {
       transition={{ delay: index * 0.1 }}
     >
       <Link href={`/gallery/${gallery._id}`} className="group block relative h-full">
-        <div className="relative h-full overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 transition-all duration-500 group-hover:border-blue-500/50 group-hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.3)]">
+        {/* استایل شیشه‌ای (Glassmorphism) برای هماهنگی با تم */}
+        <div className="relative h-full overflow-hidden rounded-2xl bg-zinc-900/40 backdrop-blur-md border border-white/10 transition-all duration-500 group-hover:border-blue-500/50 group-hover:shadow-lg group-hover:shadow-blue-900/20">
           
-          {/* تصویر کاور */}
           <div className="relative h-64 w-full overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent z-10 opacity-80" />
             <Image
@@ -94,32 +99,27 @@ function GalleryCard({ gallery, index }: { gallery: any, index: number }) {
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
             />
-            
-            {/* تعداد عکس‌ها - بج (Badge) */}
-            <div className="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+            <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 text-white">
               <ImageIcon className="h-3 w-3 text-blue-400" />
               <span>{gallery.images?.length || 0} تصویر</span>
             </div>
           </div>
 
-          {/* محتوای متنی */}
           <div className="p-6 relative z-20 -mt-10">
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors line-clamp-1">
               {gallery.title}
             </h3>
-            
             <p className="text-zinc-400 text-sm mb-4 line-clamp-2 h-10">
               {gallery.description || "بدون توضیحات..."}
             </p>
 
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+            <div className="flex items-center justify-between pt-4 border-t border-white/5">
               <span className="text-xs text-zinc-500 flex items-center gap-1.5 dir-ltr">
                 {new Date(gallery.createdAt).toLocaleDateString('fa-IR')}
                 <Calendar className="h-3 w-3" />
               </span>
-              
               <span className="text-sm font-bold text-blue-500 flex items-center gap-1 group-hover:translate-x-[-5px] transition-transform">
-                مشاهده آلبوم <ArrowLeft className="h-4 w-4" />
+                مشاهده <ArrowLeft className="h-4 w-4" />
               </span>
             </div>
           </div>
