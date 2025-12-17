@@ -6,7 +6,8 @@ import Link from "next/link";
 import { 
   Users, FileText, Mail, ArrowRight, 
   Ticket, BarChart3, Loader2, PlusSquare, 
-  LayoutDashboard, MessageSquare, BookOpen 
+  LayoutDashboard, MessageSquare, BookOpen,
+  Image as ImageIcon // ✅ آیکون جدید برای گالری
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -87,9 +88,14 @@ export default function AdminDashboard() {
           <ActionCard href="/admin/create-post" title="نوشتن مقاله جدید" icon={<FileText className="h-6 w-6"/>} desc="انتشار مطلب در وبلاگ" color="hover:border-orange-500/50 hover:bg-orange-900/20" />
           <ActionCard href="/admin/manage-posts" title="مدیریت وبلاگ" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و ویرایش مقالات" color="hover:border-pink-500/50 hover:bg-pink-900/20" />
            
-          {/* 👇 کارت‌های جدید: نشریه */}
+          {/* نشریه */}
           <ActionCard href="/admin/create-journal" title="انتشار نشریه" icon={<BookOpen className="h-6 w-6"/>} desc="آپلود نسخه جدید صفر و یک" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
           <ActionCard href="/admin/manage-journals" title="مدیریت نشریات" icon={<LayoutDashboard className="h-6 w-6"/>} desc="لیست و حذف نشریه‌ها" color="hover:border-cyan-500/50 hover:bg-cyan-900/20" />
+
+          {/* ✅ بخش جدید: گالری */}
+          <ActionCard href="/admin/create-gallery" title="ثبت گزارش تصویری" icon={<ImageIcon className="h-6 w-6"/>} desc="آپلود تصاویر جدید در گالری" color="hover:border-rose-500/50 hover:bg-rose-900/20" />
+          <ActionCard href="/admin/manage-gallery" title="مدیریت گالری" icon={<LayoutDashboard className="h-6 w-6"/>} desc="مشاهده و حذف گزارش‌ها" color="hover:border-rose-500/50 hover:bg-rose-900/20" />
+
           {/* اعضا و پیام‌ها */}
           <ActionCard href="/admin/add-member" title="افزودن عضو" icon={<Users className="h-6 w-6"/>} desc="مدیریت اعضای انجمن" color="hover:border-purple-500/50 hover:bg-purple-900/20" />
           <ActionCard href="/admin/messages" title="صندوق پیام" icon={<Mail className="h-6 w-6"/>} desc="پیام‌های تماس با ما" baseBg="bg-yellow-900/10 border-yellow-500/20" color="hover:bg-yellow-900/20" />
@@ -102,7 +108,6 @@ export default function AdminDashboard() {
 }
 
 function StatCard({ title, value, icon, color, href }: any) {
-  
   const content = (
       <div className={`p-6 rounded-2xl border ${color} flex flex-col items-center justify-center text-center backdrop-blur-sm bg-slate-900/50 ${href ? 'group transition-all hover:scale-[1.02] hover:shadow-lg hover:border-blue-500' : ''}`}>
         <div className="mb-3 p-3 rounded-full bg-slate-800/80 group-hover:bg-white/10 transition">{icon}</div>
