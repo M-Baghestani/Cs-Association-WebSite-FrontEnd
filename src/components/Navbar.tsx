@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navLinks = [
     { name: "خانه", href: "/" },
     { name: "رویدادها", href: "/events" },
+    { name: "گالری", href: "/gallery" }, // ✅ لینک گالری اضافه شد
     { name: "وبلاگ", href: "/blog" },
     { name: "نشریه", href: "/journals" }, 
     { name: "اعضا", href: "/team" },
@@ -108,7 +109,6 @@ export default function Navbar() {
           {user ? (
             <div className="hidden lg:flex items-center gap-3"> 
               <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition">
-                {/* ✅ تغییر: نمایش عکس پروفایل در دسکتاپ */}
                 {user.profileImage ? (
                     <img 
                       src={user.profileImage} 
@@ -185,7 +185,6 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <div className="flex items-center gap-3 mb-4 bg-slate-800 p-3 rounded-xl border border-white/5">
-                                {/* ✅ تغییر: نمایش عکس پروفایل در موبایل */}
                                 <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-md overflow-hidden relative">
                                     {user.profileImage ? (
                                         <img 
