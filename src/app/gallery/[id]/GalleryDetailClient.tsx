@@ -7,6 +7,7 @@ import {
   Loader2, Calendar, Share2, Download, 
   X, Maximize2 
 } from "lucide-react";
+// اصلاح مسیرهای ایمپورت
 import BackButton from "../../../components/BackButton"; 
 import NeuralBackground from "../../../components/NeuralBackground";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,12 +15,10 @@ import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// ✅ تعریف اینترفیس برای ورودی‌های کامپوننت
 interface GalleryDetailClientProps {
   id: string;
 }
 
-// ✅ اضافه کردن { id } به ورودی تابع
 export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
   const [gallery, setGallery] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +36,6 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
         setLoading(false);
       }
     };
-    // چک می‌کنیم که id وجود داشته باشد
     if (id) fetchGallery();
   }, [id]);
 
@@ -58,45 +56,40 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
   };
 
   if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
-      <Loader2 className="animate-spin h-10 w-10 text-cyan-500" />
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="animate-spin h-10 w-10 text-blue-500" />
     </div>
   );
 
   if (!gallery) return <div className="text-white text-center pt-32">گالری یافت نشد.</div>;
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-950 text-white overflow-x-hidden selection:bg-cyan-500/30">
+    // 🔴 تغییر مهم: حذف bg-slate-950 برای نمایش پس‌زمینه اصلی سایت
+    <div className="min-h-screen relative w-full overflow-x-hidden">
+      
+      {/* استفاده از پس‌زمینه متحرک */}
       <NeuralBackground />
 
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/30 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[128px] animate-pulse delay-1000" />
-      </div>
-
-      <div className="relative z-10 pt-28 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+      <div className="relative z-10 pt-24 pb-20 px-4 container mx-auto max-w-6xl">
         
-        <div className="mb-12 relative overflow-hidden rounded-[2.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-xl p-8 md:p-12 shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-8">
-            <div className="space-y-6 flex-1">
+        {/* هدر جزئیات */}
+        <div className="mb-12 relative overflow-hidden rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-md p-6 md:p-10 shadow-2xl">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div className="space-y-5 flex-1">
               <div className="flex items-center gap-4">
                  <BackButton />
-                 <span className="flex items-center gap-2 bg-cyan-500/10 text-cyan-400 px-4 py-1.5 rounded-full text-sm font-bold border border-cyan-500/20">
+                 <span className="flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm border border-blue-500/20">
                     <Calendar className="h-4 w-4" />
                     {new Date(gallery.createdAt).toLocaleDateString('fa-IR')}
                  </span>
               </div>
 
-              <motion.h1 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-3xl md:text-5xl font-black text-white leading-tight"
-              >
+              <h1 className="text-3xl md:text-4xl font-black text-white leading-tight">
                 {gallery.title}
-              </motion.h1>
+              </h1>
               
               {gallery.description && (
-                <p className="text-slate-300 text-lg leading-relaxed max-w-3xl">
+                <p className="text-gray-300 text-lg leading-relaxed">
                   {gallery.description}
                 </p>
               )}
@@ -104,24 +97,25 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
             
             <button 
               onClick={handleShare}
-              className="flex items-center gap-3 px-6 py-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition text-white font-bold active:scale-95 group shrink-0"
+              className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition text-white font-medium active:scale-95 h-fit whitespace-nowrap"
             >
-              <Share2 className="h-5 w-5 group-hover:text-cyan-400 transition" /> 
+              <Share2 className="h-5 w-5" /> 
               <span>اشتراک‌گذاری</span>
             </button>
           </div>
         </div>
 
+        {/* گرید تصاویر */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
           {gallery.images.map((imgUrl: string, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
               onClick={() => setSelectedImage(imgUrl)}
-              className="relative group break-inside-avoid rounded-3xl overflow-hidden border border-white/5 cursor-zoom-in bg-slate-800 shadow-lg"
+              className="relative group break-inside-avoid rounded-2xl overflow-hidden border border-white/10 cursor-zoom-in bg-slate-800 shadow-lg"
             >
               <Image
                 src={imgUrl}
@@ -132,8 +126,9 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
                 loading="lazy"
               />
               
+              {/* لایه هاور */}
               <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                  <div className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                  <div className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white shadow-xl">
                       <Maximize2 className="h-6 w-6" />
                   </div>
               </div>
@@ -142,40 +137,41 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
         </div>
       </div>
 
+      {/* مودال نمایش عکس (Lightbox) */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(10px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            className="fixed inset-0 z-[100] bg-slate-950/90 flex items-center justify-center p-4 md:p-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setSelectedImage(null)}
           >
-            <button className="absolute top-6 right-6 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition z-50 border border-white/10">
-              <X className="h-6 w-6" />
+            <button className="absolute top-5 right-5 text-white/70 hover:text-white bg-white/10 p-2 rounded-full transition z-50">
+              <X className="h-8 w-8" />
             </button>
 
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-7xl w-full h-full flex flex-col items-center justify-center pointer-events-none"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
             >
               <img 
                 src={selectedImage} 
                 alt="Full Screen" 
-                className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl border border-white/10 bg-black pointer-events-auto"
-                onClick={(e) => e.stopPropagation()}
+                className="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl border border-white/10"
               />
               
-              <div className="mt-6 flex items-center gap-4 pointer-events-auto">
+              <div className="mt-4">
                 <a 
                   href={selectedImage} 
                   download 
                   target="_blank"
-                  className="flex items-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full font-bold shadow-lg shadow-cyan-900/20 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold shadow-lg transition"
                 >
-                  <Download className="h-4 w-4" /> دانلود با کیفیت اصلی
+                  <Download className="h-4 w-4" /> دانلود تصویر
                 </a>
               </div>
             </motion.div>
