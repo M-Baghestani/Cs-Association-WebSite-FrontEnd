@@ -18,3 +18,12 @@ export default async function fetchEvents() {
     return { events: [], error: true };
   }
 }
+
+
+export const getGalleries = async () => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/galleries`, {
+    cache: 'no-store'
+  });
+  if (!res.ok) throw new Error('خطا در دریافت گالری');
+  return res.json();
+};
