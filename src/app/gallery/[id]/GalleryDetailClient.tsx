@@ -7,7 +7,6 @@ import {
   Loader2, Calendar, Share2, Download, 
   X, Maximize2 
 } from "lucide-react";
-// اصلاح مسیرهای ایمپورت
 import BackButton from "../../../components/BackButton"; 
 import NeuralBackground from "../../../components/NeuralBackground";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,8 +24,16 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
+    // 🛠️ دیباگ: اگر ID نرسید، لودینگ را خاموش کن و خطا بده
+    if (!id) {
+        console.error("❌ خطا: شناسه (ID) گالری دریافت نشد.");
+        setLoading(false);
+        return;
+    }
+
     const fetchGallery = async () => {
       try {
+        console.log("در حال دریافت گالری با ID:", id);
         const res = await axios.get(`${API_URL}/galleries/${id}`);
         if (res.data.success) setGallery(res.data.data);
       } catch (error) {
@@ -36,7 +43,8 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
         setLoading(false);
       }
     };
-    if (id) fetchGallery();
+
+    fetchGallery();
   }, [id]);
 
   const handleShare = async () => {
@@ -44,8 +52,8 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: gallery.title,
-          text: gallery.description,
+          title: gallery?.title,
+          text: gallery?.description,
           url: url,
         });
       } catch (err) { console.log('Share canceled'); }
@@ -61,13 +69,10 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
     </div>
   );
 
-  if (!gallery) return <div className="text-white text-center pt-32">گالری یافت نشد.</div>;
+  if (!gallery) return <div className="text-white text-center pt-32 text-xl font-bold">گالری یافت نشد ❌</div>;
 
   return (
-    // 🔴 تغییر مهم: حذف bg-slate-950 برای نمایش پس‌زمینه اصلی سایت
     <div className="min-h-screen relative w-full overflow-x-hidden">
-      
-      {/* استفاده از پس‌زمینه متحرک */}
       <NeuralBackground />
 
       <div className="relative z-10 pt-24 pb-20 px-4 container mx-auto max-w-6xl">
@@ -126,7 +131,6 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
                 loading="lazy"
               />
               
-              {/* لایه هاور */}
               <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                   <div className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white shadow-xl">
                       <Maximize2 className="h-6 w-6" />
@@ -137,7 +141,7 @@ export default function GalleryDetailClient({ id }: GalleryDetailClientProps) {
         </div>
       </div>
 
-      {/* مودال نمایش عکس (Lightbox) */}
+      {/* مودال Lightbox */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div 

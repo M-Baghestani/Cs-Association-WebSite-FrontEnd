@@ -1,24 +1,22 @@
 import { Metadata } from "next";
-// ✅ اصلاح مسیر ایمپورت: اشاره به فایل کلاینت همین پوشه
 import GalleryDetailClient from "./GalleryDetailClient";
 
-// آدرس API برای دریافت اطلاعات جهت سئو
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>; // 👈 تغییر تایپ برای سازگاری با نسخه‌های جدید
 };
 
-// 🟢 تولید متادیتای داینامیک برای سئو
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params; // 👈 حتما باید await شود
   try {
-    const res = await fetch(`${API_URL}/galleries/${params.id}`, { cache: 'no-store' });
+    const res = await fetch(`${API_URL}/galleries/${id}`, { cache: 'no-store' });
     const data = await res.json();
     
     if (data.success && data.data) {
       return {
         title: `${data.data.title} | گالری تصاویر`,
-        description: data.data.description?.substring(0, 160) || 'مشاهده تصاویر این رویداد در انجمن علمی کامپیوتر',
+        description: data.data.description?.substring(0, 160),
       };
     }
   } catch (error) {
@@ -31,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function GalleryDetailPage({ params }: Props) {
-  // حالا GalleryDetailClient ورودی id را می‌پذیرد
-  return <GalleryDetailClient id={params.id} />;
+export default async function GalleryDetailPage({ params }: Props) {
+  const { id } = await params; // 👈 این خط مشکل شما را حل می‌کند
+  return <GalleryDetailClient id={id} />;
 }
