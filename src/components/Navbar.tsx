@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navLinks = [
     { name: "خانه", href: "/" },
     { name: "رویدادها", href: "/events" },
-    { name: "گالری", href: "/gallery" }, // ✅ لینک گالری اضافه شد
+    { name: "گالری", href: "/gallery" },
     { name: "وبلاگ", href: "/blog" },
     { name: "نشریه", href: "/journals" }, 
     { name: "اعضا", href: "/team" },
@@ -23,6 +23,12 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
   const pathname = usePathname(); 
   const router = useRouter();
+
+  // --- تغییر جدید: مخفی کردن نوبار در صفحه نظرسنجی ---
+  if (pathname === '/survey') {
+    return null;
+  }
+  // ---------------------------------------------------
 
   useEffect(() => {
     const checkUser = () => {
