@@ -8,16 +8,14 @@ export default function SurveyPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [checking, setChecking] = useState(true);
-  
-  // متغیر جدید برای تشخیص نوع پیام
   const [isNewSubmission, setIsNewSubmission] = useState(false);
 
-  // ۱. بررسی وضعیت در لحظه لود شدن صفحه (رفرش)
   useEffect(() => {
+    // بررسی اینکه آیا قبلاً رای داده است یا خیر
     const hasVoted = localStorage.getItem('survey_voted');
     if (hasVoted) {
       setSubmitted(true);
-      setIsNewSubmission(false); // یعنی این یک بازدید مجدد است
+      setIsNewSubmission(false);
     }
     setChecking(false);
   }, []);
@@ -47,9 +45,9 @@ export default function SurveyPage() {
       console.error('Supabase Error:', error);
       alert('مشکلی پیش آمد! لطفاً اتصال اینترنت را چک کنید.');
     } else {
-      // ۲. ثبت موفقیت‌آمیز
+      // ثبت موفقیت‌آمیز
       localStorage.setItem('survey_voted', 'true');
-      setIsNewSubmission(true); // یعنی این یک ثبت جدید است
+      setIsNewSubmission(true);
       setSubmitted(true);
     }
   }
@@ -65,9 +63,7 @@ export default function SurveyPage() {
         
         <div className="relative z-10 bg-black/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl text-center max-w-md w-full border border-green-500/30">
           
-          {/* شرط نمایش پیام بر اساس جدید یا قدیمی بودن */}
           {isNewSubmission ? (
-            // --- پیام ۱: همین الان ثبت کرد ---
             <>
               <div className="text-6xl mb-4 animate-bounce">✅</div>
               <h1 className="text-2xl font-bold text-white mb-2">نظر شما دریافت شد!</h1>
@@ -78,7 +74,6 @@ export default function SurveyPage() {
               </p>
             </>
           ) : (
-            // --- پیام ۲: قبلاً ثبت کرده و رفرش کرده ---
             <>
               <div className="text-6xl mb-4 animate-pulse">🔒</div> 
               <h1 className="text-2xl font-bold text-white mb-2">شما قبلاً رای داده‌اید</h1>
@@ -170,5 +165,20 @@ export default function SurveyPage() {
   );
 }
 
+// این تابع باید بیرون از تابع SurveyPage باشد (دقیقاً اینجا)
 function InputCard({ label, name }: { label: string; name: string }) {
   return (
+    <div className="flex flex-col group">
+      <label className="text-xs font-semibold text-gray-300 mb-2 text-center group-hover:text-white transition-colors">{label}</label>
+      <input
+        required
+        type="number"
+        name={name}
+        min="0"
+        max="20"
+        placeholder="-"
+        className="w-full text-center py-3 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white/10 transition outline-none text-lg font-bold text-white placeholder-gray-500"
+      />
+    </div>
+  );
+}
