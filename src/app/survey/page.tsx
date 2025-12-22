@@ -7,13 +7,17 @@ import NeuralBackground from '@/components/NeuralBackground';
 export default function SurveyPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [checking, setChecking] = useState(true); // برای جلوگیری از پرش صفحه
+  const [checking, setChecking] = useState(true);
+  
+  // متغیر جدید برای تشخیص نوع پیام
+  const [isNewSubmission, setIsNewSubmission] = useState(false);
 
-  // ۱. چک کردن اینکه آیا قبلاً رای داده یا نه
+  // ۱. بررسی وضعیت در لحظه لود شدن صفحه (رفرش)
   useEffect(() => {
     const hasVoted = localStorage.getItem('survey_voted');
     if (hasVoted) {
       setSubmitted(true);
+      setIsNewSubmission(false); // یعنی این یک بازدید مجدد است
     }
     setChecking(false);
   }, []);
@@ -43,13 +47,13 @@ export default function SurveyPage() {
       console.error('Supabase Error:', error);
       alert('مشکلی پیش آمد! لطفاً اتصال اینترنت را چک کنید.');
     } else {
-      // ۲. ذخیره نشان در مرورگر کاربر
+      // ۲. ثبت موفقیت‌آمیز
       localStorage.setItem('survey_voted', 'true');
+      setIsNewSubmission(true); // یعنی این یک ثبت جدید است
       setSubmitted(true);
     }
   }
 
-  // اگر هنوز داریم چک میکنیم، یک صفحه خالی نشون بده (برای زیبایی)
   if (checking) return <div className="min-h-screen bg-black" />;
 
   if (submitted) {
@@ -60,14 +64,32 @@ export default function SurveyPage() {
         </div>
         
         <div className="relative z-10 bg-black/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl text-center max-w-md w-full border border-green-500/30">
-          {/* آیکون قفل یا تیک */}
-          <div className="text-6xl mb-4 animate-bounce">🔒</div> 
-          <h1 className="text-2xl font-bold text-white mb-2">نظر شما ثبت شده!</h1>
-          <p className="text-gray-300 leading-relaxed">
-            شما قبلاً در این نظرسنجی شرکت کرده‌اید.
-            <br />
-            هر دستگاه فقط یک‌بار می‌تواند رای دهد.
-          </p>
+          
+          {/* شرط نمایش پیام بر اساس جدید یا قدیمی بودن */}
+          {isNewSubmission ? (
+            // --- پیام ۱: همین الان ثبت کرد ---
+            <>
+              <div className="text-6xl mb-4 animate-bounce">✅</div>
+              <h1 className="text-2xl font-bold text-white mb-2">نظر شما دریافت شد!</h1>
+              <p className="text-gray-300 leading-relaxed">
+                ممنون از شرکت در این آزمون.
+                <br />
+                اطلاعات شما با موفقیت به سرور ارسال شد.
+              </p>
+            </>
+          ) : (
+            // --- پیام ۲: قبلاً ثبت کرده و رفرش کرده ---
+            <>
+              <div className="text-6xl mb-4 animate-pulse">🔒</div> 
+              <h1 className="text-2xl font-bold text-white mb-2">شما قبلاً رای داده‌اید</h1>
+              <p className="text-gray-300 leading-relaxed">
+                پاسخ شما در سیستم موجود است.
+                <br />
+                امکان ثبت مجدد وجود ندارد.
+              </p>
+            </>
+          )}
+
         </div>
       </div>
     );
@@ -150,17 +172,3 @@ export default function SurveyPage() {
 
 function InputCard({ label, name }: { label: string; name: string }) {
   return (
-    <div className="flex flex-col group">
-      <label className="text-xs font-semibold text-gray-300 mb-2 text-center group-hover:text-white transition-colors">{label}</label>
-      <input
-        required
-        type="number"
-        name={name}
-        min="0"
-        max="20"
-        placeholder="-"
-        className="w-full text-center py-3 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white/10 transition outline-none text-lg font-bold text-white placeholder-gray-500"
-      />
-    </div>
-  );
-}

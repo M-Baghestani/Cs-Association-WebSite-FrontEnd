@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers"; // ۱. اضافه شدن این مورد برای تشخیص دامنه
 import "./globals.css";
 import { Vazirmatn } from "next/font/google";
 import { Toaster } from "react-hot-toast";
@@ -14,7 +15,14 @@ const vazir = Vazirmatn({
 // آدرس پایه سایت
 const BASE_URL = "https://cs-khu.ir";
 
-export const metadata: Metadata = {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
+// ۲. تعریف متادیتای پیش‌فرض (سایت اصلی) در یک متغیر
+const defaultMetadata: Metadata = {
   title: "انجمن علمی علوم کامپیوتر دانشگاه خوارزمی | CS-KHU.ir",
   description:
     "پایگاه رسمی انجمن علمی گروه علوم کامپیوتر دانشگاه خوارزمی. آخرین رویدادها، وبلاگ‌های تخصصی، و نشریات علمی را دنبال کنید.",
@@ -58,11 +66,28 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
+// ۳. تابع تولید متادیتای پویا
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "";
+
+  // شرط: اگر ساب‌دامنه mhb بود
+  if (host.includes("mhb")) {
+    return {
+      ...defaultMetadata,
+      title: "وب‌سایت رسمی محمدحسین باغستانی",
+      description: "صفحه شخصی و نظرسنجی محمدحسین باغستانی - دانشجوی علوم کامپیوتر دانشگاه خوارزمی",
+      openGraph: {
+        ...defaultMetadata.openGraph,
+        title: "وب‌سایت رسمی محمدحسین باغستانی",
+        siteName: "Mohammad Hossein Baghestani",
+      },
+    };
+  }
+
+  // در غیر این صورت همان متادیتای اصلی را برگردان
+  return defaultMetadata;
+}
 
 // Schema Markup برای سازمان
 const organizationSchema = {
@@ -73,7 +98,6 @@ const organizationSchema = {
   logo: `${BASE_URL}/icon.png`,
   sameAs: [
     "https://t.me/CS_KHU",
-    // لینک‌های شبکه‌های اجتماعی دیگر
   ],
 };
 
@@ -99,10 +123,10 @@ export default function RootLayout({
           }}
         />
 
-        {/* محتوای اصلی شامل Navbar، Footer، شبکه عصبی و children */}
+        {/* محتوای اصلی */}
         <AppContent>{children}</AppContent>
 
-        {/* Schema Markup برای سازمان */}
+        {/* Schema Markup */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
