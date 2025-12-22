@@ -20,17 +20,23 @@ const navLinks = [
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [scrolled, setScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSubdomain, setIsSubdomain] = useState(false); // ۱. متغیر جدید برای تشخیص ساب‌دامنه
+  
   const pathname = usePathname(); 
   const router = useRouter();
 
-  // --- تغییر جدید: مخفی کردن نوبار در صفحه نظرسنجی ---
-  if (pathname === '/survey') {
-    return null;
-  }
-  // ---------------------------------------------------
-
   useEffect(() => {
+    // ۲. این تابع فقط در مرورگر اجرا می‌شود
+    const checkSubdomain = () => {
+       const hostname = window.location.hostname;
+       // اگر آدرس شامل mhb بود (یعنی ساب‌دامنه است)، فلگ را روشن کن
+       if (hostname.includes('mhb')) {
+         setIsSubdomain(true);
+       }
+    };
+    checkSubdomain();
+
     const checkUser = () => {
         const storedUser = localStorage.getItem("user");
         setUser(storedUser ? JSON.parse(storedUser) : null);
@@ -47,6 +53,11 @@ export default function Navbar() {
     };
   }, []);
 
+  // ۳. شرط نهایی: اگر ساب‌دامنه بود، کلاً هیچی نشون نده (حذف نوبار)
+  if (isSubdomain) {
+    return null;
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -57,6 +68,7 @@ export default function Navbar() {
 
   return (
     <>
+      {/* ادامه کدهای قبلی بدون تغییر... */}
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
